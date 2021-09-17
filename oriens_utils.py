@@ -26,18 +26,20 @@ def mvDog(mu1,mu2,sigma1,sigma2):
 
     return G
 
-def getOriensResp(img,G,orienslist):
+def getOriensResp(img,G,orienslist,th):
 
-    result = scipy.signal.convolve2d(img,G,"same")
+    temp = scipy.signal.convolve2d(img,G,"same","wrap")
 
-    response = np.zeros((np.shape(result)[0],np.shape(result)[1],len(orienslist)))
+    response = np.zeros((np.shape(temp)[0],np.shape(temp)[1],len(orienslist)))
 
-    response[:,:,0] = result
+    temp[temp < th] = 0
+
+    response[:,:,0] = temp
 
     for i in range(1,len(orienslist)):
         Grot = imutils.rotate(G, angle=orienslist[i])
-        temp = scipy.signal.convolve2d(img,Grot,"same")
-        temp[temp < 0.08] = 0
+        temp = scipy.signal.convolve2d(img,Grot,"same","wrap")
+        temp[temp < th] = 0
         response[:,:,i] = temp
 
     return response
@@ -61,19 +63,29 @@ def calc_viewimage(matrices, dispcomb, theta):
     cnt1 = 0
 
     if (np.shape(dispcomb)[0] == 1):
-        result = matrices[:,:,dispcomb[0]]
+        #result = matrices[:,:,dispcomb[0]]
+        result = matrices[dispcomb[0]][:,:]
     else:
 
         # calculate the superposition (L-infinity norm)
         while (cnt1 < np.shape(dispcomb)[0]):
             #calculate the maximum orientation-response in each point (based on the absolute values)
-            oriensMatrixtmp1 = np.multiply((abs(matrices[:,:,dispcomb[cnt1]-1]) > tmpMaxConv),theta[dispcomb[cnt1]-1])
-            oriensMatrixtmp2 = np.multiply((abs(matrices[:,:,dispcomb[cnt1]-1]) <= tmpMaxConv),oriensMatrix)
+            #oriensMatrixtmp1 = np.multiply((abs(matrices[:,:,dispcomb[cnt1]-1]) > tmpMaxConv),theta[dispcomb[cnt1]-1])
+            #oriensMatrixtmp2 = np.multiply((abs(matrices[:,:,dispcomb[cnt1]-1]) <= tmpMaxConv),oriensMatrix)
+
+            temp = abs(matrices[dispcomb[cnt1]-1][:,:]) > tmpMaxConv
+            temp = temp.astype(np.uint8) * 255
+
+            oriensMatrixtmp1 = np.multiply((abs(matrices[dispcomb[cnt1]-1][:,:]) > tmpMaxConv),theta[dispcomb[cnt1]-1])
+            oriensMatrixtmp2 = np.multiply((abs(matrices[dispcomb[cnt1]-1][:,:]) <= tmpMaxConv),oriensMatrix)
+
             oriensMatrix = oriensMatrixtmp1 + oriensMatrixtmp2
-            tmpMaxConv = np.maximum(abs(matrices[:,:,dispcomb[cnt1]-1]), tmpMaxConv)
+            #tmpMaxConv = np.maximum(abs(matrices[:,:,dispcomb[cnt1]-1]), tmpMaxConv)
+            tmpMaxConv = np.maximum(abs(matrices[dispcomb[cnt1] - 1][:,:]), tmpMaxConv)
         
             # calculate the superposition
-            result = np.maximum(result,abs(matrices[:,:,dispcomb[cnt1]-1]))
+            #result = np.maximum(result,abs(matrices[:,:,dispcomb[cnt1]-1]))
+            result = np.maximum(result, abs(matrices[dispcomb[cnt1] - 1][:,:]))
             cnt1 = cnt1 + 1
     
     return(result, oriensMatrix)
