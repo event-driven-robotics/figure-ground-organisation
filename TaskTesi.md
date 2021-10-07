@@ -8,7 +8,7 @@
     * [ ] Abstract
     * [ ] Introduzione
     * [ ] Figure Ground Segmentation
-    * [ ] Event-Driven Cameras
+    * [X] Event-Driven Cameras
     * [ ] EV FG organization
     * [ ] Experiments & Results
     * [ ] Conclusion
