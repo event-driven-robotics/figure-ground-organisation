@@ -7,10 +7,10 @@
 * [ ] Scrivere Tesi
     * [ ] Abstract
     * [ ] Introduzione
-    * [ ] Figure Ground Segmentation
+    * [X] Figure Ground Segmentation
     * [X] Event-Driven Cameras
     * [ ] EV FG organization
-    * [ ] Experiments & Results
+    * [X] Experiments & Results
     * [ ] Conclusion
 * [ ] Confronto tra evFigGround & fbFigGround
 * [ ] Experiments + Dataset (oggetti reali + scrivania)
