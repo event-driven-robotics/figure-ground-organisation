@@ -6,6 +6,7 @@ from scipy.special import iv  # Modified bessel function
 from bimvee.importRpgDvsRos import importRpgDvsRos
 from bimvee.importIitYarp import importIitYarp
 import oriens_utils as oriens
+import sys
 
 MAXLEVEL = 10
 NUMORI = 8
@@ -13,8 +14,9 @@ R0 = 2
 WIDTHVM = 13
 HEIGHTVM = 13
 W = 1
-ITERATIONS = 20
+ITERATIONS = 10
 ALPHA = 2
+ORIENTATIONS = False
 
 def makePyramid(img):
 
@@ -70,33 +72,6 @@ def makeVonMises(R0,theta0,dim1,dim2):
 
     return (msk1_final,msk2_final)
 
-'''def vfcolor(x,y):
-
-    eps = np.finfo(float).eps
-
-    xf = x
-    yf = y
-
-    nrow,ncol = np.shape(xf)
-    h = 8*(np.arctan2(yf,xf)/(2*math.pi))%8
-    h2 = (np.ceil(h)%8)+1
-    h1 = (h2-2%8)+1
-    hr = np.ceil(h)-h
-    s = np.sqrt(np.power(xf,2)+np.power(yf,2))
-
-    s = s/(np.amax(s[:])+eps)
-
-    c = np.reshape(np.matrix('1 0 0; 1 0.5 0; 1 1 0; 0 1 0; 0 0.6 0; 0 1 1; 0 0 1; 1 0 1'),(8,1,3))
-    img1 = np.zeros((nrow,ncol,3))
-    img1[:] = c[h1,0,:]
-    img2 = np.zeros((nrow,ncol,3))
-    img2[:] = c[h2,0,:]
-    rhr = np.tile(hr,(1,1,3))
-    img = rhr*img1+(1-rhr)*img2
-    rs = np.tile(s,(1,1,3))
-    img = rs*img+(1-rs)
-
-    return img'''
 
 def mergeLevel(pyr):
 
@@ -227,8 +202,8 @@ def vonMisesSum(pyr,invmsk1,invmsk2):
                     temp1[:,:,ori] = np.zeros((np.shape(vmPyr1[minL-1][:,:,ori])))
                     temp2[:,:,ori] = np.zeros((np.shape(vmPyr2[minL-1][:,:,ori])))
 
-                temp1[:,:,ori] += np.power((1/2),(level-minL))*cv2.resize(vmPyr1[level-1][:,:,ori],np.shape(vmPyr1[minL-1][:,:,ori]),interpolation=cv2.INTER_CUBIC).transpose()
-                temp2[:,:,ori] += np.power((1/2),(level-minL))*cv2.resize(vmPyr2[level-1][:,:,ori],np.shape(vmPyr2[minL-1][:,:,ori]),interpolation=cv2.INTER_CUBIC).transpose()
+                temp1[:,:,ori] += np.power((1/2),(level-minL))*cv2.resize(vmPyr1[level-1][:,:,ori],(np.shape(vmPyr1[minL-1][:,:,ori])[1],np.shape(vmPyr1[minL-1][:,:,ori])[0]),interpolation=cv2.INTER_CUBIC)
+                temp2[:,:,ori] += np.power((1/2),(level-minL))*cv2.resize(vmPyr2[level-1][:,:,ori],(np.shape(vmPyr2[minL-1][:,:,ori])[1],np.shape(vmPyr2[minL-1][:,:,ori])[0]),interpolation=cv2.INTER_CUBIC)
 
         map1.append(temp1)
         map2.append(temp2)
@@ -267,14 +242,14 @@ def makeBorderOwnership(edgeMapPyr,oriensMatrixPyr,orienslist):
         for ori in range(NUMORI):
 
             s[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori))
-            s[:,:,ori+8] = np.multiply(edgeMapPyr[level],(ori_index==ori+8))
+            s[:,:,ori+NUMORI] = np.multiply(edgeMapPyr[level],(ori_index==ori+(NUMORI)))
 
             # Light object on dark background
             bl_1[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori))
-            bl_2[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori+8))
+            bl_2[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori+(NUMORI)))
 
             # Dark object on light background
-            bd_1[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori+8))
+            bd_1[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori+(NUMORI)))
             bd_2[:,:,ori] = np.multiply(edgeMapPyr[level],(ori_index==ori))
 
         bl_1_pyr.append(bl_1)
@@ -411,23 +386,29 @@ def makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr):
 
 if __name__ == '__main__':
 
+    # Read image name from command line
+    '''path = str(sys.argv[1]).split("/")
+    image_name = path[2]
+    SUFFIX = "_"+image_name'''
+
     ori = np.array([0,22.5,45,67.5]) # 8 orientations
     oris = np.deg2rad(np.concatenate((ori,ori+90),0))
 
-    #events = importIitYarp(filePathOrName='/Tesi/Datasets/circles/data/', codec='20bit')
-    events = importIitYarp(filePathOrName='/Tesi/Datasets/photorealistic/')
-    xs =  events['data']['left']['dvs']['x']
-    ys =  events['data']['left']['dvs']['y']
-    ts =  events['data']['left']['dvs']['ts']
-    pol =  events['data']['left']['dvs']['pol']
+    # Read events
+    events = importIitYarp(filePathOrName='/Tesi/Datasets/circles/data/', codec='20bit')
+    #events = importIitYarp(filePathOrName='/Tesi/Datasets/icub_datasets/square/data')
+    xs =  events['data']['right']['dvs']['x']
+    ys =  events['data']['right']['dvs']['y']
+    ts =  events['data']['right']['dvs']['ts']
+    pol =  events['data']['right']['dvs']['pol']
 
 
-    ''''# Load the events fram from the bag
-    filePathOrName = '/Tesi/figure-ground-organisation/shapes_rotation.bag'
+    # Load the events fram from the bag
+    '''filePathOrName = '/Tesi/figure-ground-organisation/shaked_imgs/'+image_name+'/out010.bag'
     
     template = {
         'events': {
-                'dvs': '/dvs/events'
+                'dvs': '/cam0/events'
                 }
     }
     
@@ -437,56 +418,64 @@ if __name__ == '__main__':
     xs = events["x"]
     ys = events["y"]
     pol = events["pol"]
-    ts = events["ts"]'''
+    ts = events["ts"]
 
-    start_time = ts[1000]
-    start_time_tw = ts[1000]
-    seconds = 0.223  #0.532
-    tw_seconds = 0.085
-    i = 0
     frame_list = []
-    frame = np.full((240,304), 0.5)
+    frame = np.full((events["dimY"],events["dimX"]), 0.5)
+    frame[ys, xs] = pol
+    frame_list.append(frame.copy())'''
+
+    # Create events frame
+    tw_seconds = 0.030
+    time_istant = np.where(ts>=0.497)[0][0]
+    start_time = ts[time_istant]
+    start_time_tw = ts[time_istant]
+    seconds = 0.200
+    i = time_istant
+    frame_list = []
+    frame = np.full((321, 481), 0.5)
 
     while True:
 
         current_time = ts[i]
 
-        elapsed_time = current_time - start_time
         elapsed_time_tw = current_time - start_time_tw
 
         frame[ys[i], xs[i]] = pol[i]
 
-        if elapsed_time >= seconds:
+        if elapsed_time_tw >= tw_seconds:
+            frame_list.append(frame.copy())
             break
-        elif elapsed_time_tw >= tw_seconds:
-            frame_list.append(frame)
-            frame.fill(0.5)
-            start_time_tw = ts[i]
 
         i +=1
 
+
     orienslist = list(np.arange(0, 337.5 + 1, 22.5))
+
     # Create the multivariate DoG
     mu = np.array([0, 0])
     sigma1 = np.array([[0.8, 0], [0, 0.4]])
     sigma2 = np.array([[0.8, 0], [0, 0.3]])
-
     G = oriens.mvDog(mu, mu, sigma1, sigma2)
 
     image_sum = 0
     response_list = []
     all_respone = []
 
-
     for i in range(len(frame_list)):
 
         image = frame_list[i]
 
+        # Split events frame into pos e neg
         img_pos = np.zeros(np.shape(image))
         img_neg = np.zeros(np.shape(image))
 
         img_pos[image > 0.7] = 1
         img_neg[image < 0.3] = 1
+
+        #if i==0:
+            #np.savetxt('img_pos' + SUFFIX + '.csv', img_pos)
+            #np.savetxt('img_neg' + SUFFIX + '.csv', img_neg)
 
         image[image == 0] = 1
         image[image == 0.5] = 0
@@ -496,10 +485,18 @@ if __name__ == '__main__':
         edgeMapPyr_pos = makePyramid(img_pos)
         edgeMapPyr_neg = makePyramid(img_neg)
 
+        # Compute edge maps at different orientations
         for j in range(MAXLEVEL):
 
-            response_pos = oriens.getOriensResp(edgeMapPyr_pos[j], G, orienslist[:8], 0.3)  # 0.15
-            response_neg = oriens.getOriensResp(edgeMapPyr_neg[j], G, orienslist[8:], 0.3)  # 0.15
+            response_pos = oriens.getOriensResp(edgeMapPyr_pos[j], G, orienslist[:NUMORI], 0.3)  # 0.15
+            response_neg = oriens.getOriensResp(edgeMapPyr_neg[j], G, orienslist[NUMORI:], 0.3)  # 0.15
+
+            #if (ORIENTATIONS and (j==0) and (i==0)):
+                #for t in range(np.shape(response_pos)[2]):
+                    #np.savetxt('resp'+str(orienslist[t]) + SUFFIX + '.csv', response_pos[:,:,t])
+
+                #for t in range(np.shape(response_neg)[2]):
+                    #np.savetxt('resp'+str(orienslist[NUMORI+t]) + SUFFIX + '.csv', response_neg[:,:,t])
 
             response = np.concatenate((response_pos, response_neg), axis=2)
 
@@ -510,6 +507,7 @@ if __name__ == '__main__':
 
     response_pyr = []
     response = []
+    # Sum the edge map at the same orientation together
     for i in range(MAXLEVEL):
         for k in range(len(orienslist)):
             sum_ori = 0
@@ -523,6 +521,7 @@ if __name__ == '__main__':
         response_pyr.append(response)
         response = []
 
+    # Compute orientations matrix
     oriensMatrixPyr = []
     for i in range(MAXLEVEL):
         # Compute the orientation matrix with the edge maps at different orientations
@@ -530,8 +529,9 @@ if __name__ == '__main__':
 
         oriensMatrixPyr.append(oriensMatrix)
 
-    np.savetxt('oriens.csv',oriensMatrixPyr[0])
-    np.savetxt('frame.csv', image_sum)
+
+    #np.savetxt('oriens'+SUFFIX+'.csv',oriensMatrixPyr[0])
+    #np.savetxt('frame'+SUFFIX+'.csv', image_sum)
 
     edgeMapPyr = makePyramid(image_sum)
 
@@ -555,23 +555,13 @@ if __name__ == '__main__':
     # Iterative algorithm
     for i in range(ITERATIONS):
 
-        print('Iteration ' +str(i)+ '\n')
+        print('Iteration ' +str(i+1)+ '\n')
 
         gl_pyr,gd_pyr,bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr = makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr)
 
     # Combine border-ownership maps
     bTotal1 = sumPyr(bl_1_pyr,bd_1_pyr,'orientation')
     bTotal2 = sumPyr(bl_2_pyr,bd_2_pyr,'orientation')
-
-    # Combine grouping maps
-    gTotal = sumPyr(gl_pyr,gd_pyr,'data')
-
-    # Combine the maps
-    '''groupData = np.zeros((np.shape(image)[0],np.shape(image)[1]))
-
-    for level in range(MAXLEVEL):
-
-        groupData += cv2.resize(gTotal[level], np.shape(image)).transpose()'''
 
     # Visualize border ownership at the highest resolution
     X = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
@@ -583,18 +573,20 @@ if __name__ == '__main__':
         X += (math.cos(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
         Y += (math.sin(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
 
-    np.savetxt('X.csv',X)
-    np.savetxt('Y.csv',Y)
+    # Combine grouping maps
+    gTotal = sumPyr(gl_pyr, gd_pyr, 'data')
 
-    # Figure-ground segmentation
-    #occ_map = np.arctan2(X,Y)
+    # Combine the maps
+    groupData = np.zeros((np.shape(image)[0],np.shape(image)[1]))
+    for level in range(MAXLEVEL):
+        groupData += cv2.resize(gTotal[level], (np.shape(image)[1],np.shape(image)[0]))
 
-    #occ_map = vfcolor(X,Y)
+
+    #np.savetxt('X'+SUFFIX+'.csv',X)
+    #np.savetxt('Y'+SUFFIX+'.csv',Y)
+
+    #np.savetxt('grouping' + SUFFIX + '.csv', groupData)
 
     #cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
     #cv2.imshow("Image", occ_map)
     #cv2.waitKey(0)
-
-    # Grouping
-    #group_map = cv2.normalize(groupData)
-    #group_map = group_map*(group_map>0.1'''

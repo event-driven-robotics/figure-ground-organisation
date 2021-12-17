@@ -5,6 +5,10 @@ import imutils
 
 def mvnpdf(mu,sigma):
 
+    '''
+        Create multivartiate Gaussian
+    '''
+
     x1 = list(np.arange(-3, 3+0.2,0.2))
     x2 = list(np.arange(-3, 3+0.2,0.2))
 
@@ -19,6 +23,9 @@ def mvnpdf(mu,sigma):
 
 def mvDog(mu1,mu2,sigma1,sigma2):
 
+    '''
+        Create multivariate DoG
+    '''
     y1 = mvnpdf(mu1,sigma1)
     y2 = mvnpdf(mu2,sigma2)
 
@@ -27,6 +34,10 @@ def mvDog(mu1,mu2,sigma1,sigma2):
     return G
 
 def getOriensResp(img,G,orienslist,th):
+
+    '''
+        Compute edge maps at different orientations
+    '''
 
     temp = scipy.signal.convolve2d(img,G,"same","wrap")
 
