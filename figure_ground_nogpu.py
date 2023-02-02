@@ -5,18 +5,20 @@ import scipy.ndimage
 from scipy.special import iv  # Modified bessel function
 from bimvee.importRpgDvsRos import importRpgDvsRos
 from bimvee.importIitYarp import importIitYarp
+from bimvee.importProph import importProph
 import oriens_utils as oriens
 import sys
 
-MAXLEVEL = 10
-NUMORI = 8
-R0 = 2
-WIDTHVM = 13
-HEIGHTVM = 13
-W = 1
-ITERATIONS = 10
-ALPHA = 2
-ORIENTATIONS = False
+
+
+MAXLEVEL = 10  #pyramid level
+NUMORI = 8 #orientation numbers
+R0 = 2 #VM size, radius
+WIDTHVM = 13 #VM witdh
+HEIGHTVM = 13 #VM height (originally 13)
+W = 1 #weight of inhibition BO
+ITERATIONS = 10 #iterations number
+ALPHA = 2 #BO feedback formulation, paramater
 
 def makePyramid(img):
 
@@ -384,209 +386,270 @@ def makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr):
 
     return(gl_pyr,gd_pyr,bl_1_pyr_new,bl_2_pyr_new,bd_1_pyr_new,bd_2_pyr_new)
 
+
+
+
+
+
 if __name__ == '__main__':
 
     # Read image name from command line
     '''path = str(sys.argv[1]).split("/")
     image_name = path[2]
-    SUFFIX = "_"+image_name'''
+    # SUFFIX = "_"+image_name'''
+
+    DataLogFLAG = True
+    RosBAgFLAG = False
+    RawDataFLAG = False
+    SaveFilesFLAG = True
+
+
+    image_name = 'test'
+    SUFFIX = "_" + image_name
 
     ori = np.array([0,22.5,45,67.5]) # 8 orientations
     oris = np.deg2rad(np.concatenate((ori,ori+90),0))
 
-    # Read events
-    events = importIitYarp(filePathOrName='/Tesi/Datasets/circles/data/', codec='20bit')
-    #events = importIitYarp(filePathOrName='/Tesi/Datasets/icub_datasets/square/data')
-    xs =  events['data']['right']['dvs']['x']
-    ys =  events['data']['right']['dvs']['y']
-    ts =  events['data']['right']['dvs']['ts']
-    pol =  events['data']['right']['dvs']['pol']
+
+    name_list=['heart']#, 'footprint','cat','tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
+
+    for name in name_list:
+        # Read events
+        saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/results/'+name+'/'
+        if DataLogFLAG:
+            if name.__eq__('cilinder_cup_bottle') | name.__eq__('key_mouse_flip'):
+                filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/icub-real/' +name+ '/data/'
+                codecbit='24bit'
+                camera_events = 'left'
+            elif name.__eq__('calib_circles'):
+                filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/icub-real/' +name+ '/data/'
+                codecbit = '20bit'
+                camera_events = 'right'
+            else:
+                filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/patterns/'+name+'/data/'
+                codecbit = '24bit'
+                camera_events = 'left'
+
+            events = importIitYarp(filePathOrName=filePathOrName, codec = codecbit)
+            #events = importIitYarp(filePathOrName='/Tesi/Datasets/icub_datasets/square/data')
 
 
-    # Load the events fram from the bag
-    '''filePathOrName = '/Tesi/figure-ground-organisation/shaked_imgs/'+image_name+'/out010.bag'
-    
-    template = {
-        'events': {
-                'dvs': '/cam0/events'
-                }
-    }
-    
-    container = importRpgDvsRos(filePathOrName=filePathOrName, template=template)
-    
-    events = container["data"]["events"]["dvs"]
-    xs = events["x"]
-    ys = events["y"]
-    pol = events["pol"]
-    ts = events["ts"]
 
-    frame_list = []
-    frame = np.full((events["dimY"],events["dimX"]), 0.5)
-    frame[ys, xs] = pol
-    frame_list.append(frame.copy())'''
+            xs = events['data'][camera_events]['dvs']['x']
+            ys = events['data'][camera_events]['dvs']['y']
+            ts = events['data'][camera_events]['dvs']['ts']
+            pol = events['data'][camera_events]['dvs']['pol']
 
-    # Create events frame
-    tw_seconds = 0.030
-    time_istant = np.where(ts>=0.497)[0][0]
-    start_time = ts[time_istant]
-    start_time_tw = ts[time_istant]
-    seconds = 0.200
-    i = time_istant
-    frame_list = []
-    frame = np.full((321, 481), 0.5)
+            # Create events frame
+            tw_seconds = 0.10#how many seconds you want to accumulate events (0.15)
+            time2accumulate = 3.15 #where to start the accumulation (decided with mustard) (1.50)
+            time_istant = np.where(ts >= time2accumulate)[0][0]
+            start_time = ts[time_istant]
+            start_time_tw = ts[time_istant]
+            i = time_istant
+            frame_list = []
+            # frame = np.full((241, 305), 0.5)
+            frame = np.full((341, 481), 0.5)
 
-    while True:
 
-        current_time = ts[i]
 
-        elapsed_time_tw = current_time - start_time_tw
+        # Load the events fram from the bag
+        if RosBAgFLAG:
+            filePathOrName = '/Tesi/figure-ground-organisation/shaked_imgs/'+image_name+'/out010.bag'
 
-        frame[ys[i], xs[i]] = pol[i]
+            template = {
+                'events': {
+                        'dvs': '/cam0/events'
+                        }
+            }
 
-        if elapsed_time_tw >= tw_seconds:
+            container = importRpgDvsRos(filePathOrName=filePathOrName, template=template)
+
+            events = container["data"]["events"]["dvs"]
+            xs = events["x"]
+            ys = events["y"]
+            pol = events["pol"]
+            ts = events["ts"]
+
+            frame_list = []
+            frame = np.full((events["dimY"],events["dimX"]), 0.5)
+            frame[ys, xs] = pol
             frame_list.append(frame.copy())
-            break
 
-        i +=1
+        if RawDataFLAG:
+            events = importProph(filePathOrName='/home/giuliadangelo/figure-ground-organisation/clutter_dynamic_cappelloDATASET/dataset/clutter.raw')
 
+            camera_events = 'ch0'
 
-    orienslist = list(np.arange(0, 337.5 + 1, 22.5))
+            xs = events['data'][camera_events]['dvs']['x']
+            ys = events['data'][camera_events]['dvs']['y']
+            ts = events['data'][camera_events]['dvs']['ts']
+            pol = events['data'][camera_events]['dvs']['pol']
 
-    # Create the multivariate DoG
-    mu = np.array([0, 0])
-    sigma1 = np.array([[0.8, 0], [0, 0.4]])
-    sigma2 = np.array([[0.8, 0], [0, 0.3]])
-    G = oriens.mvDog(mu, mu, sigma1, sigma2)
+            # Create events frame
+            tw_seconds = 0.15  # how many seconds you want to accumulate events
+            time2accumulate = 1.50  # where to start the accumulation (decided with mustard)
+            time_istant = np.where(ts >= time2accumulate)[0][0]
+            start_time = ts[time_istant]
+            start_time_tw = ts[time_istant]
+            i = time_istant
+            frame_list = []
+            frame = np.full((480, 640), 0.5)
 
-    image_sum = 0
-    response_list = []
-    all_respone = []
+        #events frame accumulating event for a specific period, only for data.log or ros.bag if you don't want a frame with all the events of the dataset
+        while True:
 
-    for i in range(len(frame_list)):
+            current_time = ts[i]
 
-        image = frame_list[i]
+            elapsed_time_tw = current_time - start_time_tw
 
-        # Split events frame into pos e neg
-        img_pos = np.zeros(np.shape(image))
-        img_neg = np.zeros(np.shape(image))
+            frame[ys[i], xs[i]] = pol[i]
 
-        img_pos[image > 0.7] = 1
-        img_neg[image < 0.3] = 1
+            if elapsed_time_tw >= tw_seconds:
+                frame_list.append(frame.copy())
+                break
 
-        #if i==0:
-            #np.savetxt('img_pos' + SUFFIX + '.csv', img_pos)
-            #np.savetxt('img_neg' + SUFFIX + '.csv', img_neg)
+            i +=1
 
-        image[image == 0] = 1
-        image[image == 0.5] = 0
+        orienslist = list(np.arange(0, 337.5 + 1, 22.5))
 
-        image_sum += image
+        # Create the multivariate DoG
+        mu = np.array([0, 0])
+        sigma1 = np.array([[0.8, 0], [0, 0.4]])
+        sigma2 = np.array([[0.8, 0], [0, 0.3]])
+        G = oriens.mvDog(mu, mu, sigma1, sigma2)
 
-        edgeMapPyr_pos = makePyramid(img_pos)
-        edgeMapPyr_neg = makePyramid(img_neg)
-
-        # Compute edge maps at different orientations
-        for j in range(MAXLEVEL):
-
-            response_pos = oriens.getOriensResp(edgeMapPyr_pos[j], G, orienslist[:NUMORI], 0.3)  # 0.15
-            response_neg = oriens.getOriensResp(edgeMapPyr_neg[j], G, orienslist[NUMORI:], 0.3)  # 0.15
-
-            #if (ORIENTATIONS and (j==0) and (i==0)):
-                #for t in range(np.shape(response_pos)[2]):
-                    #np.savetxt('resp'+str(orienslist[t]) + SUFFIX + '.csv', response_pos[:,:,t])
-
-                #for t in range(np.shape(response_neg)[2]):
-                    #np.savetxt('resp'+str(orienslist[NUMORI+t]) + SUFFIX + '.csv', response_neg[:,:,t])
-
-            response = np.concatenate((response_pos, response_neg), axis=2)
-
-            response_list.append(response)
-
-        all_respone.append(response_list)
+        image_sum = 0
         response_list = []
+        all_respone = []
 
-    response_pyr = []
-    response = []
-    # Sum the edge map at the same orientation together
-    for i in range(MAXLEVEL):
-        for k in range(len(orienslist)):
-            sum_ori = 0
-            for j in range(len(all_respone)):
+        for i in range(len(frame_list)):
 
-                sum_ori += all_respone[j][i][:,:,k]
-                sum_ori[sum_ori<0.2] = 0
+            image = frame_list[i]
 
-            response.append(sum_ori)
+            # Split events frame into pos e neg
+            img_pos = np.zeros(np.shape(image))
+            img_neg = np.zeros(np.shape(image))
 
-        response_pyr.append(response)
+            img_pos[image > 0.7] = 1
+            img_neg[image < 0.3] = 1
+
+            if SaveFilesFLAG:
+                if i==0:
+                    np.savetxt(saving_path+'img_pos' + SUFFIX + '.csv', img_pos)
+                    np.savetxt(saving_path+'img_neg' + SUFFIX + '.csv', img_neg)
+
+            image[image == 0] = 1
+            image[image == 0.5] = 0
+
+            image_sum += image
+
+            edgeMapPyr_pos = makePyramid(img_pos)
+            edgeMapPyr_neg = makePyramid(img_neg)
+
+            # Compute edge maps at different orientations
+            for j in range(MAXLEVEL):
+
+                response_pos = oriens.getOriensResp(edgeMapPyr_pos[j], G, orienslist[:NUMORI], 0.3)  # 0.15
+                response_neg = oriens.getOriensResp(edgeMapPyr_neg[j], G, orienslist[NUMORI:], 0.3)  # 0.15
+
+                if (SaveFilesFLAG and (j==0) and (i==0)):
+                    for t in range(np.shape(response_pos)[2]):
+                        np.savetxt(saving_path+'resp'+str(orienslist[t]) + SUFFIX + '.csv', response_pos[:,:,t])
+
+                    for t in range(np.shape(response_neg)[2]):
+                        np.savetxt(saving_path+'resp'+str(orienslist[NUMORI+t]) + SUFFIX + '.csv', response_neg[:,:,t])
+
+                response = np.concatenate((response_pos, response_neg), axis=2)
+
+                response_list.append(response)
+
+            all_respone.append(response_list)
+            response_list = []
+
+        response_pyr = []
         response = []
+        # Sum the edge map at the same orientation together
+        for i in range(MAXLEVEL):
+            for k in range(len(orienslist)):
+                sum_ori = 0
+                for j in range(len(all_respone)):
 
-    # Compute orientations matrix
-    oriensMatrixPyr = []
-    for i in range(MAXLEVEL):
-        # Compute the orientation matrix with the edge maps at different orientations
-        corfresponse, oriensMatrix = oriens.calc_viewimage(response_pyr[i],list(range(1,len(orienslist)+1)), np.multiply(orienslist,math.pi/180))
+                    sum_ori += all_respone[j][i][:,:,k]
+                    sum_ori[sum_ori<0.2] = 0
 
-        oriensMatrixPyr.append(oriensMatrix)
+                response.append(sum_ori)
+
+            response_pyr.append(response)
+            response = []
+
+        # Compute orientations matrix
+        oriensMatrixPyr = []
+        for i in range(MAXLEVEL):
+            # Compute the orientation matrix with the edge maps at different orientations
+            corfresponse, oriensMatrix = oriens.calc_viewimage(response_pyr[i],list(range(1,len(orienslist)+1)), np.multiply(orienslist,math.pi/180))
+
+            oriensMatrixPyr.append(oriensMatrix)
+
+        if SaveFilesFLAG:
+            np.savetxt(saving_path+'oriens'+SUFFIX+'.csv',oriensMatrixPyr[0])
+            np.savetxt(saving_path+'frame'+SUFFIX+'.csv', image_sum)
+
+        edgeMapPyr = makePyramid(image_sum)
+
+        # Create VonMises
+        dim1 = np.arange(-3*R0,3*R0+1)
+        dim2 = np.flip(dim1,0)
+
+        invmsk1 = []
+        invmsk2 = []
+
+        for ori in range(NUMORI):
+
+            temp1,temp2 = makeVonMises(R0,oris[ori]+math.pi/2,dim1,dim2)
+
+            invmsk1.append(temp1)
+            invmsk2.append(temp2)
+
+        # Generate border ownership(feedforward step)
+        bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,s_pyr = makeBorderOwnership(edgeMapPyr,oriensMatrixPyr,np.multiply(orienslist,math.pi/180))
+
+        # Iterative algorithm
+        for i in range(ITERATIONS):
+
+            print('Iteration ' +str(i+1)+ '\n')
+
+            gl_pyr,gd_pyr,bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr = makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr)
+
+        # Combine border-ownership maps
+        bTotal1 = sumPyr(bl_1_pyr,bd_1_pyr,'orientation')
+        bTotal2 = sumPyr(bl_2_pyr,bd_2_pyr,'orientation')
+
+        # Visualize border ownership at the highest resolution
+        X = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
+        Y = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
+
+        for ori in range(NUMORI):
+
+            # BOS points towards outside of circle
+            X += (math.cos(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
+            Y += (math.sin(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
+
+        # Combine grouping maps
+        gTotal = sumPyr(gl_pyr, gd_pyr, 'data')
+
+        # Combine the maps
+        groupData = np.zeros((np.shape(image)[0],np.shape(image)[1]))
+        for level in range(MAXLEVEL):
+            groupData += cv2.resize(gTotal[level], (np.shape(image)[1],np.shape(image)[0]))
+
+        if SaveFilesFLAG:
+            np.savetxt(saving_path+'X'+SUFFIX+'.csv',X)
+            np.savetxt(saving_path+'Y'+SUFFIX+'.csv',Y)
+            np.savetxt(saving_path+'grouping' + SUFFIX + '.csv', groupData)
 
 
-    #np.savetxt('oriens'+SUFFIX+'.csv',oriensMatrixPyr[0])
-    #np.savetxt('frame'+SUFFIX+'.csv', image_sum)
-
-    edgeMapPyr = makePyramid(image_sum)
-
-    # Create VonMises
-    dim1 = np.arange(-3*R0,3*R0+1)
-    dim2 = np.flip(dim1,0)
-
-    invmsk1 = []
-    invmsk2 = []
-
-    for ori in range(NUMORI):
-
-        temp1,temp2 = makeVonMises(R0,oris[ori]+math.pi/2,dim1,dim2)
-
-        invmsk1.append(temp1)
-        invmsk2.append(temp2)
-
-    # Generate border ownership(feedforward step)
-    bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,s_pyr = makeBorderOwnership(edgeMapPyr,oriensMatrixPyr,np.multiply(orienslist,math.pi/180))
-
-    # Iterative algorithm
-    for i in range(ITERATIONS):
-
-        print('Iteration ' +str(i+1)+ '\n')
-
-        gl_pyr,gd_pyr,bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr = makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr)
-
-    # Combine border-ownership maps
-    bTotal1 = sumPyr(bl_1_pyr,bd_1_pyr,'orientation')
-    bTotal2 = sumPyr(bl_2_pyr,bd_2_pyr,'orientation')
-
-    # Visualize border ownership at the highest resolution
-    X = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
-    Y = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
-
-    for ori in range(NUMORI):
-
-        # BOS points towards outside of circle
-        X += (math.cos(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
-        Y += (math.sin(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
-
-    # Combine grouping maps
-    gTotal = sumPyr(gl_pyr, gd_pyr, 'data')
-
-    # Combine the maps
-    groupData = np.zeros((np.shape(image)[0],np.shape(image)[1]))
-    for level in range(MAXLEVEL):
-        groupData += cv2.resize(gTotal[level], (np.shape(image)[1],np.shape(image)[0]))
-
-
-    #np.savetxt('X'+SUFFIX+'.csv',X)
-    #np.savetxt('Y'+SUFFIX+'.csv',Y)
-
-    #np.savetxt('grouping' + SUFFIX + '.csv', groupData)
-
-    #cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
-    #cv2.imshow("Image", occ_map)
-    #cv2.waitKey(0)
+            #how to draw a window
+            # cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+            # cv2.imshow("Image", occ_map)
+            # cv2.waitKey(0)
