@@ -8,12 +8,14 @@ from bimvee.importIitYarp import importIitYarp
 from bimvee.importProph import importProph
 import oriens_utils as oriens
 import sys
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 
 
 MAXLEVEL = 10  #pyramid level
 NUMORI = 8 #orientation numbers
-R0 = 2 #VM size, radius
+R0 = 8 #VM size, radius
 WIDTHVM = 13 #VM witdh
 HEIGHTVM = 13 #VM height (originally 13)
 W = 1 #weight of inhibition BO
@@ -410,8 +412,8 @@ if __name__ == '__main__':
     ori = np.array([0,22.5,45,67.5]) # 8 orientations
     oris = np.deg2rad(np.concatenate((ori,ori+90),0))
 
-
-    name_list=['heart']#, 'footprint','cat','tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
+    filpFLAG = 1;
+    name_list=['heart', 'footprint','cat']#,'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
 
     for name in name_list:
         # Read events
@@ -441,8 +443,8 @@ if __name__ == '__main__':
             pol = events['data'][camera_events]['dvs']['pol']
 
             # Create events frame
-            tw_seconds = 0.10#how many seconds you want to accumulate events (0.15)
-            time2accumulate = 3.15 #where to start the accumulation (decided with mustard) (1.50)
+            tw_seconds = 0.18 #how many seconds you want to accumulate events (0.15) new research (0.1)
+            time2accumulate = 1.50 #where to start the accumulation (decided with mustard) (1.50)new research(3.90)
             time_istant = np.where(ts >= time2accumulate)[0][0]
             start_time = ts[time_istant]
             start_time_tw = ts[time_istant]
@@ -530,7 +532,12 @@ if __name__ == '__main__':
             # Split events frame into pos e neg
             img_pos = np.zeros(np.shape(image))
             img_neg = np.zeros(np.shape(image))
+            img_hndl = np.zeros(np.shape(image))
 
+            if filpFLAG:
+                image = cv2.flip(image, -1)
+            # imgplot = plt.imshow(flippedimage)
+            # plt.show()
             img_pos[image > 0.7] = 1
             img_neg[image < 0.3] = 1
 
