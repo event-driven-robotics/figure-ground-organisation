@@ -10,7 +10,7 @@ import oriens_utils as oriens
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
+import os
 
 
 MAXLEVEL = 10  #pyramid level
@@ -401,7 +401,7 @@ if __name__ == '__main__':
     # SUFFIX = "_"+image_name'''
 
     DataLogFLAG = True
-    RosBAgFLAG = False
+    RosBagFLAG = False
     RawDataFLAG = False
     SaveFilesFLAG = True
 
@@ -412,12 +412,20 @@ if __name__ == '__main__':
     ori = np.array([0,22.5,45,67.5]) # 8 orientations
     oris = np.deg2rad(np.concatenate((ori,ori+90),0))
 
-    filpFLAG = 1;
-    name_list=['heart', 'footprint','cat']#,'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
+    filpFLAG = 0;
+    # name_list=['heart', 'footprint','cat']
+    name_list=['cilinder_cup_bottle']# 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
+
+    # name_list = ['12003', '12074', '22090', '24063', '28075', '35008', '35058', '35070', '41004', '105053', '112082', '113016', '156079','159091','368016', '43070', '113016', '156079']
+
 
     for name in name_list:
         # Read events
-        saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/results/'+name+'/'
+
+        saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name+'/'
+        # saving_path = '/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/'+name+'/'
+        os.mkdir('/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name)
+
         if DataLogFLAG:
             if name.__eq__('cilinder_cup_bottle') | name.__eq__('key_mouse_flip'):
                 filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/icub-real/' +name+ '/data/'
@@ -444,20 +452,20 @@ if __name__ == '__main__':
 
             # Create events frame
             tw_seconds = 0.18 #how many seconds you want to accumulate events (0.15) new research (0.1)
-            time2accumulate = 1.50 #where to start the accumulation (decided with mustard) (1.50)new research(3.90)
+            time2accumulate = 4.42 #where to start the accumulation (decided with mustard) (1.50)new research(3.90)
             time_istant = np.where(ts >= time2accumulate)[0][0]
             start_time = ts[time_istant]
             start_time_tw = ts[time_istant]
             i = time_istant
             frame_list = []
-            # frame = np.full((241, 305), 0.5)
-            frame = np.full((341, 481), 0.5)
+            frame = np.full((241, 305), 0.5)
+            # frame = np.full((341, 481), 0.5)
 
 
 
         # Load the events fram from the bag
-        if RosBAgFLAG:
-            filePathOrName = '/Tesi/figure-ground-organisation/shaked_imgs/'+image_name+'/out010.bag'
+        if RosBagFLAG:
+            filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/FBEDFGBerkley/shaked_imgs/'+name+'/out010.bag'
 
             template = {
                 'events': {
@@ -465,7 +473,7 @@ if __name__ == '__main__':
                         }
             }
 
-            container = importRpgDvsRos(filePathOrName=filePathOrName, template=template)
+            container = importRpgDvsRos(filePathOrName=filePathOrName, template=template, log='info')
 
             events = container["data"]["events"]["dvs"]
             xs = events["x"]
@@ -477,6 +485,16 @@ if __name__ == '__main__':
             frame = np.full((events["dimY"],events["dimX"]), 0.5)
             frame[ys, xs] = pol
             frame_list.append(frame.copy())
+
+            # Create events frame
+            tw_seconds = 0.01  # how many seconds you want to accumulate events
+            time2accumulate = 0.00 # where to start the accumulation (decided with mustard)
+            time_istant = np.where(ts >= time2accumulate)[0][0]
+            start_time = ts[time_istant]
+            start_time_tw = ts[time_istant]
+            i = time_istant
+            frame_list = []
+            frame = np.full((321, 481), 0.5)
 
         if RawDataFLAG:
             events = importProph(filePathOrName='/home/giuliadangelo/figure-ground-organisation/clutter_dynamic_cappelloDATASET/dataset/clutter.raw')

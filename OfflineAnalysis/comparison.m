@@ -7,7 +7,7 @@ res_comp = zeros(size(list_images,1),6);
 
 res_comp(:,1) = list_images;
 
-% Simulator's thresholds
+% Simulator thresholds
 th = {'010','015','020','030','040'};
 
 for ind_th=1:size(th,2)
