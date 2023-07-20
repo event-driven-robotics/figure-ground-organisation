@@ -1,0 +1,30 @@
+https://github.com/event-driven-robotics/figure-ground-organisation
+
+
+###########################
+
+OfflineAnalysis:
+
+Analyse the response from the model. MATLAB offline. It does not require libraries. 
+*comparison: comparison between the model and the ground truth from the benchmark. Comparison of saliency maps. Angle difference of comparison pixel by pixel (only where there is something). The result is mean and variance for each pixel, image and threshold.
+*ConvertGT:Specific for the Berkley dataset (https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/). It converts the ground truth (figure-ground segmentation) into angle ifnormation and the verse directed to the object. 
+*OfflineAnalysis: Visualisation of the results: Orientation matrix, events frame, img pos and img neg, Grouping, Orientation maps and Figure Ground. 
+*vfcolor: function from the original model to color the result of the figure ground (legend color).
+
+
+###########################
+
+figure_ground_nogpu: take in input events(ros.bag, data.log) and does all the model computations. 
+
+###########################
+
+model.sh: bash scritp to execute the model over all the images of the dataset.
+
+###########################
+
+oriens_utils: library called from figure_ground_nogpu to create the multivariate Dog, (edge map oriented) orientation maps, orientation matrix.
+
+ 
+###########################
+
+shaking-dynamic: Giulia's code modified to do only two rotations (left from right or top to bottom).

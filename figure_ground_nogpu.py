@@ -424,7 +424,7 @@ if __name__ == '__main__':
 
         saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name+'/'
         # saving_path = '/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/'+name+'/'
-        os.mkdir('/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name)
+        # os.mkdir('/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name)
 
         if DataLogFLAG:
             if name.__eq__('cilinder_cup_bottle') | name.__eq__('key_mouse_flip'):

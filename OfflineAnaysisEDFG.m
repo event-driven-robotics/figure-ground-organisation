@@ -19,25 +19,25 @@ heart=160
 tv=80
 %}
 % 
-% data_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/';
+
 % saving_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/results/';
+% 
+% data_path='/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/';
+% saving_path='/home/giuliadangelo/figure-ground-organisation/EDFG_RNN_results/results_r08/';
+% 
+% patternFLAG = 0;
+% if patternFLAG
+%          name_str={'heart', 'cat', 'footprint'};
+% else 
+%          name_str={'cilinder_cup_bottle'}%'calib_circles', 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles'};   
+% end
 
-data_path='/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/';
-saving_path='/home/giuliadangelo/figure-ground-organisation/EDFG_RNN_results/results_r08/';
 
-patternFLAG = 0;
-if patternFLAG
-         name_str={'heart', 'cat', 'footprint'};
-else 
-         name_str={'cilinder_cup_bottle'}%'calib_circles', 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles'};   
-end
-
-
-%%%%%%%%%%%%%%%%%%%5 solve patter flag 
+%%%%%%%%%%%%%%%%%%% solve patter flag 
 % '368016','8049', '112082', '159091', '105053'  not that good, does not
 % '12003', '12074', '22090', '24063', '28075', '35008', '35058', '35070', '35091', '41004'
-
-%  name_str={ '12003', '12074', '22090', '24063', '28075', '35008', '35058', '35070', '35091', '41004'};   
+data_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/';
+name_str={'12074','22090','28075','35008','35058','35070','105053', '159091'};
 
 
 %%%%%%% experiments on patterns or icub-real %%%%%%%%%
