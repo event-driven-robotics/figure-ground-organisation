@@ -5,10 +5,11 @@
 % angle for the central pixel of the window
 
 clc,clear all,close all;
+addpath('BSDS300-human','fgcode','GroundTruth')
 
 MAXDIM = 21;
 
-imagefiles = dir('./color/*.fg');
+imagefiles = dir('./GroundTruth/*.fg');
 
 % For each image
 for ii=1:2:size(imagefiles,1)
@@ -16,7 +17,7 @@ for ii=1:2:size(imagefiles,1)
         names = {imagefiles(ii).name,imagefiles(ii+1).name};
         image_name = string(names(1,randi([1 2])));
     
-        FG = readbin(strcat('/home/simone/Scaricati/fgcode/color/',image_name));
+        FG = readbin(strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/GroundTruth/',image_name));
         FG = FG{1,1};
 
         new_FG = zeros(size(FG));
