@@ -2,3 +2,12 @@ venv/
 fg_venv/
 __pycache__/
 .idea/
+OfflineAnalysis/BSDS300-human/
+OfflineAnalysis/BSDS300/
+OfflineAnalysis/FGgroundtruthangles.png
+OfflineAnalysis/FGgroundtruthlegend.png
+OfflineAnalysis/GroundTruth/
+OfflineAnalysis/csvresults/
+OfflineAnalysis/fgcode/
+OfflineAnalysis/readsegmentationBSDS.asv
+OfflineAnalysis/segbench/
