@@ -12,3 +12,9 @@ OfflineAnalysis/fgcode/
 OfflineAnalysis/readsegmentationBSDS.asv
 OfflineAnalysis/segbench/
 OfflineAnalysis/fgsegresults/
+FG_RNN/images/
+FG_RNN/output/
+OfflineAnalysis/GTFGEDFG.jpg
+OfflineAnalysis/edfg.jpg
+OfflineAnalysis/fbfg.jpg
+OfflineAnalysis/gt.jpg

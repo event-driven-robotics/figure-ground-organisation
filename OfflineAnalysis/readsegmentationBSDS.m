@@ -1,3 +1,5 @@
+% read and comert into angle pixel by pixel info the ground truth info
+
 
 clc,clear all,close all;
 addpath('BSDS300-human','fgcode','GroundTruth','segbench', 'fgsegresults','BSDS300','csvresults')
