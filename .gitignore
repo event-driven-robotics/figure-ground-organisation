@@ -18,3 +18,8 @@ OfflineAnalysis/GTFGEDFG.jpg
 OfflineAnalysis/edfg.jpg
 OfflineAnalysis/fbfg.jpg
 OfflineAnalysis/gt.jpg
+Berkleyresults/
+OfflineAnalysis/*.mat
+*.mat
+OfflineAnalysis/comparisonFBEDFG/
+
