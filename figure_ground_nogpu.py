@@ -11,7 +11,7 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
-
+import imageio as iio
 
 MAXLEVEL = 10  #pyramid level
 NUMORI = 8 #orientation numbers
@@ -400,8 +400,8 @@ if __name__ == '__main__':
     image_name = path[2]
     # SUFFIX = "_"+image_name'''
 
-    DataLogFLAG = True
-    RosBagFLAG = False
+    DataLogFLAG = False
+    RosBagFLAG = True
     RawDataFLAG = False
     SaveFilesFLAG = True
 
@@ -414,7 +414,10 @@ if __name__ == '__main__':
 
     filpFLAG = 0;
     # name_list=['heart', 'footprint','cat']
-    name_list=['cilinder_cup_bottle']# 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
+    # name_list=['cilinder_cup_bottle']# 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
+
+    filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/FBEDFGBerkley/shaked_imgs/'
+    name_list=os.listdir(filePathOrName)
 
     # name_list = ['12003', '12074', '22090', '24063', '28075', '35008', '35058', '35070', '41004', '105053', '112082', '113016', '156079','159091','368016', '43070', '113016', '156079']
 
@@ -422,9 +425,12 @@ if __name__ == '__main__':
     for name in name_list:
         # Read events
 
-        saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name+'/'
-        # saving_path = '/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/'+name+'/'
+        # saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name+'/'
         # os.mkdir('/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name)
+
+        saving_path = '/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/'+name+'/'
+        os.mkdir(saving_path)
+
 
         if DataLogFLAG:
             if name.__eq__('cilinder_cup_bottle') | name.__eq__('key_mouse_flip'):
@@ -494,7 +500,11 @@ if __name__ == '__main__':
             start_time_tw = ts[time_istant]
             i = time_istant
             frame_list = []
-            frame = np.full((321, 481), 0.5)
+
+            img_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/FBEDFGBerkley/shaked_imgs/' + name + '/0.jpg'
+            im = cv2.imread(img_path)
+            [rows,cols,ch]=im.shape
+            frame = np.full((rows, cols), 0.5)
 
         if RawDataFLAG:
             events = importProph(filePathOrName='/home/giuliadangelo/figure-ground-organisation/clutter_dynamic_cappelloDATASET/dataset/clutter.raw')
@@ -514,6 +524,7 @@ if __name__ == '__main__':
             start_time_tw = ts[time_istant]
             i = time_istant
             frame_list = []
+
             frame = np.full((480, 640), 0.5)
 
         #events frame accumulating event for a specific period, only for data.log or ros.bag if you don't want a frame with all the events of the dataset

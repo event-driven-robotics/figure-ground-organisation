@@ -1,4 +1,4 @@
-% read and comert into angle pixel by pixel info the ground truth info
+% read and convert into angle pixel by pixel info the ground truth info
 
 
 clc,clear all,close all;

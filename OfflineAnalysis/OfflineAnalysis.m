@@ -5,6 +5,10 @@
 clc,clear all,close all;
 PATH = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/results/key_mouse_flip';
 
+
+%%%%%%%% HERE find the results for the remaining images 
+
+
 SUFFIX = '_test';
 ORIENTATIONS = 0;
 NUMORI = 16;
@@ -28,7 +32,7 @@ figure,imagesc(grouping),colormap jet,colorbar;
 
 if ORIENTATIONS
     
-    figure
+    figure;
 
     for i=1:NUMORI
         

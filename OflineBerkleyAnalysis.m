@@ -15,12 +15,15 @@ orienslist = 0:22.5:337.5;
 
 data_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/';
 saving_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/results/';
-name_str={'12074','22090','28075','35008','35058','35070','105053', '159091'};
+name_str=dir(data_path);
+name_str=name_str(3:end,:);
+len_names=length(name_str);
+disp(len_names);
 
 
-
-for  name_str = name_str
-    name=name_str{1};
+for idx=177:len_names
+    disp(idx);
+    name=name_str(idx).name;
     PATH = strcat(data_path, name);
     
     oriens = load(strcat(PATH,'/oriens',SUFFIX,'.csv'));
@@ -76,12 +79,12 @@ for  name_str = name_str
     Y = load(strcat(PATH,'/Y',SUFFIX,'.csv'));
     occ_map = vfcolor(X,Y); 
     occ_map=imresize(occ_map,scale);
-    legendpath='/home/giuliadangelo/figure-ground-organisation/Wheel.png';
-    lgd=im2double(imread(legendpath));
-    lgd = imresize(lgd, 0.8);
-    sza= size(lgd);
-    shift=10;
-    occ_map(shift:shift+sza(1)-1,end-(sza(2)+shift):end-shift-1, :)=lgd;
+%     legendpath='/home/giuliadangelo/figure-ground-organisation/Wheel.png';
+%     lgd=im2double(imread(legendpath));
+%     lgd = imresize(lgd, 0.8);
+%     sza= size(lgd);
+%     shift=10;
+%     occ_map(shift:shift+sza(1)-1,end-(sza(2)+shift):end-shift-1, :)=lgd;
     imagesc(occ_map);
     set(ha3(1),'XTick',[]);
     set(ha3(1),'YTick',[]);
