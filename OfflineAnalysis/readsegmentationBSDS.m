@@ -70,8 +70,8 @@ for idx=1:size(names,1)
         set(gca,'xtick',[]);
         set(gca,'ytick',[]);
         exportgraphics(f2,name_res_csv,'Resolution',300);
-        colorbar;
-        % exportgraphics(f2,'FGgroundtruthangles.png','Resolution',300);
+%         colorbar;
+%         exportgraphics(f2,'FGgroundtruthangles.png','Resolution',300);
     else
         fprintf('file do not exist')
     end

@@ -1,3 +1,4 @@
+% saing names subjects segmentation
 clc,clear all,close all;
 addpath('BSDS300-human','fgcode','GroundTruth','segbench', 'fgsegresults')
 

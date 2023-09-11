@@ -1,121 +1,160 @@
 %%comparison figure ground maps ED and FG agaist the ground truth.
 %%Computing the SSIM and MSE with the figure ground map.
-
-
 clc,clear all,close all;
+
+analysisFLAG=1;
+SSIM_MSE_FLAG=0;
+saveFLAG=0;
 
 path_gt='/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/GTfigureground/'; %73
 path_FBFG='/home/giuliadangelo/figure-ground-organisation/FG_RNN/output/ori/';%306
 path_EDFG='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/results/ori/';%197
 
-%% compute the SSIM and MSE between the FBFG and EDFG
-% ssim_mseFGED(path_gt,path_FBFG,path_EDFG)
+if analysisFLAG
+%     ssim_mseFGED(path_gt,path_FBFG,path_EDFG,saveFLAG)
+    ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG,saveFLAG)
+end
 
+if SSIM_MSE_FLAG
+    %% compute the SSIM and MSE between the FBFG and EDFG
+    [FBEDFGssimvals,FBEDFGssimvals_mean,FBEDFGssimvals_var,labelnames,labelnamesval]=valsEDvsFB();
+    [EDFBvalsort,FBEDindx] = sort(FBEDFGssimvals,'descend');
+    EDFBlabelnames=labelnames(FBEDindx);
+    
+    EDFBmserrors=load('EDFBmserrors.mat');
+    EDFBmserrors=EDFBmserrors.EDFBmserrors;
+    EDFBmserrors=EDFBmserrors(FBEDindx);
+    
+    figure;
+    subplot(3,1,1);
+    
+    %%bar
+    x=categorical(EDFBlabelnames);
+    x = reordercats(x,string(x));
+    y=EDFBvalsort(1,:);
+    ax=gca;
+    bar(x,y,0.8,'FaceColor',[0.9290 0.6940 0.1250],'EdgeColor',[0 0 0],'LineWidth',1.5);
+    hold on;
+    % curve1 = FBEDFGssimvals_mean + FBEDFGssimvals_var;
+    % curve2 = FBEDFGssimvals_mean - FBEDFGssimvals_var;
+    % x2 = [x, fliplr(x)];
+    % inBetween = [curve1, fliplr(curve2)];
+    % f=fill(x2, inBetween, 'yellow');
+    % alpha(f,.5)
+    % hold on;
+    
+    %%mean
+    plot(x,FBEDFGssimvals_mean,'LineWidth',3);
+    
+    legend('EDvsFB','mean',FontSize=20);
+    xtickangle(45)
+    ax.XAxis.FontSize = 15;
+    ax.YAxis.FontSize = 26;
+    x0=10;
+    y0=10;
+    width=10000;
+    height=1000;
+    set(gcf,'position',[x0,y0,width,height]);
+    set(gcf,'units','points','position',[x0,y0,width,height]);
+    hold off;
 
-[FBEDFGssimvals,FBEDFGssimvals_mean,FBEDFGssimvals_var,labelnames,labelnamesval]=valsEDvsFB();
-[EDFBvalsort,FBEDindx] = sort(FBEDFGssimvals,'descend');
-EDFBlabelnames=labelnames(FBEDindx);
-
-figure;
-subplot(3,1,1);
-x=categorical(EDFBlabelnames);
-x = reordercats(x,string(x));
-
-y=EDFBvalsort(1,:);
-ax=gca;
-bar(x,y,0.8,'FaceColor',[0.9290 0.6940 0.1250],'EdgeColor',[0 0 0],'LineWidth',1.5);
-hold on;
-% curve1 = FBEDFGssimvals_mean + FBEDFGssimvals_var;
-% curve2 = FBEDFGssimvals_mean - FBEDFGssimvals_var;
-% x2 = [x, fliplr(x)];
-% inBetween = [curve1, fliplr(curve2)];
-% f=fill(x2, inBetween, 'yellow');
-% alpha(f,.5)
-% hold on;
-plot(x,FBEDFGssimvals_mean,'LineWidth',3);
-legend('EDvsFB','mean',FontSize=20)
-xtickangle(45)
-ax.XAxis.FontSize = 15;
-ax.YAxis.FontSize = 26;
-x0=10;
-y0=10;
-width=10000;
-height=1000;
-set(gcf,'position',[x0,y0,width,height]);
-set(gcf,'units','points','position',[x0,y0,width,height]);
-hold off;
-
-%% compute the SSIM and MSE between the FBFG against the GT
-[FBGTssimvals,FBGTssimvals_mean,FBGTssimvals_var]=valsFBvsGT();
-[FBGTvalsort,FBGTindx] = sort(FBGTssimvals,'descend');
-FBGTlabelnames=labelnames(FBGTindx);
-
-subplot(3,1,2);
-x=categorical(FBGTlabelnames);
-x = reordercats(x,string(x));
-
-y=FBGTvalsort(1,:);
-ax=gca;
-bar(x,y,0.8,'FaceColor',[0.4660 0.6740 0.1880],'EdgeColor',[0 0 0],'LineWidth',1.5);
-hold on;
-% curve1 = FBGTssimvals_mean + FBGTssimvals_var;
-% curve2 = FBGTssimvals_mean - FBGTssimvals_var;
-% x2 = [x, fliplr(x)];
-% inBetween = [curve1, fliplr(curve2)];
-% f=fill(x2, inBetween, 'yellow');
-% alpha(f,.5)
-% hold on;
-plot(x,FBGTssimvals_mean,'LineWidth',3);
-legend('FBvsGT','mean',FontSize=20)
-xtickangle(45)
-ax.XAxis.FontSize = 15;
-ax.YAxis.FontSize = 26;
-x0=10;
-y0=10;
-width=10000;
-height=1000;
-set(gcf,'position',[x0,y0,width,height]);
-set(gcf,'units','points','position',[x0,y0,width,height]);
-
-
-
-
-
-%% compute the SSIM and MSE between the EDFG against the GT
-% ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG)
-
-[EDGTssimvals,EDGTssimvals_mean,EDGTssimvals_var]=valsEDvsGT();
-[EDGTvalsort,EDGTindx] = sort(EDGTssimvals,'descend');
-EDGTlabelnames=labelnames(EDGTindx);
-
-
-subplot(3,1,3);
-x=categorical(EDGTlabelnames);
-x = reordercats(x,string(x));
-
-y=EDGTvalsort(1,:);
-ax=gca;
-bar(x,y,0.8,'FaceColor',[0.3010 0.7450 0.9330],'EdgeColor',[0 0 0],'LineWidth',1.5);
-hold on;
-% curve1 = EDGTssimvals_mean + EDGTssimvals_var;
-% curve2 = EDGTssimvals_mean - EDGTssimvals_var;
-% x2 = [x, fliplr(x)];
-% inBetween = [curve1, fliplr(curve2)];
-% f=fill(x2, inBetween, 'yellow');
-% alpha(f,.5)
-% hold on;
-plot(x,EDGTssimvals_mean,'LineWidth',3);
-legend('EDvsGT','mean',FontSize=20)
-xtickangle(45)
-ax.XAxis.FontSize = 15;
-ax.YAxis.FontSize = 26;
-x0=10;
-y0=10;
-width=10000;
-height=1000;
-set(gcf,'position',[x0,y0,width,height]);
-set(gcf,'units','points','position',[x0,y0,width,height]);
-hold off;
+    
+    %% compute the SSIM and MSE between the FBFG against the GT
+    [FBGTssimvals,FBGTssimvals_mean,FBGTssimvals_var]=valsFBvsGT();
+    [FBGTvalsort,FBGTindx] = sort(FBGTssimvals,'descend');
+    FBGTlabelnames=labelnames(FBGTindx);
+    
+    FBGTmserrors=load('FBGTmserrors.mat');
+    FBGTmserrors=FBGTmserrors.FBGTmserrors;
+    FBGTmserrors=FBGTmserrors(FBGTindx);
+    
+    
+    subplot(3,1,2);
+    x=categorical(FBGTlabelnames);
+    x = reordercats(x,string(x));
+    
+    y=FBGTvalsort(1,:);
+    ax=gca;
+    bar(x,y,0.8,'FaceColor',[0.4660 0.6740 0.1880],'EdgeColor',[0 0 0],'LineWidth',1.5);
+    hold on;
+    % curve1 = FBGTssimvals_mean + FBGTssimvals_var;
+    % curve2 = FBGTssimvals_mean - FBGTssimvals_var;
+    % x2 = [x, fliplr(x)];
+    % inBetween = [curve1, fliplr(curve2)];
+    % f=fill(x2, inBetween, 'yellow');
+    % alpha(f,.5)
+    % hold on;
+    plot(x,FBGTssimvals_mean,'LineWidth',3);
+    legend('FBvsGT','mean',FontSize=20)
+    xtickangle(45)
+    ax.XAxis.FontSize = 15;
+    ax.YAxis.FontSize = 26;
+    x0=10;
+    y0=10;
+    width=10000;
+    height=1000;
+    set(gcf,'position',[x0,y0,width,height]);
+    set(gcf,'units','points','position',[x0,y0,width,height]);
+    
+    
+    
+    
+    
+    %% compute the SSIM and MSE between the EDFG against the GT
+    
+    [EDGTssimvals,EDGTssimvals_mean,EDGTssimvals_var]=valsEDvsGT();
+    [EDGTvalsort,EDGTindx] = sort(EDGTssimvals,'descend');
+    EDGTlabelnames=labelnames(EDGTindx);
+    
+    EDGTmserrors=load('EDGTmserrors.mat');
+    EDGTmserrors=EDGTmserrors.EDGTmserrors;
+    EDGTmserrors=EDGTmserrors(EDGTindx);
+    
+    
+    subplot(3,1,3);
+    x=categorical(EDGTlabelnames);
+    x = reordercats(x,string(x));
+    
+    y=EDGTvalsort(1,:);
+    ax=gca;
+    bar(x,y,0.8,'FaceColor',[0.3010 0.7450 0.9330],'EdgeColor',[0 0 0],'LineWidth',1.5);
+    hold on;
+    % curve1 = EDGTssimvals_mean + EDGTssimvals_var;
+    % curve2 = EDGTssimvals_mean - EDGTssimvals_var;
+    % x2 = [x, fliplr(x)];
+    % inBetween = [curve1, fliplr(curve2)];
+    % f=fill(x2, inBetween, 'yellow');
+    % alpha(f,.5)
+    % hold on;
+    plot(x,EDGTssimvals_mean,'LineWidth',3);
+    legend('EDvsGT','mean',FontSize=20)
+    xtickangle(45)
+    ax.XAxis.FontSize = 15;
+    ax.YAxis.FontSize = 26;
+    x0=10;
+    y0=10;
+    width=10000;
+    height=1000;
+    set(gcf,'position',[x0,y0,width,height]);
+    set(gcf,'units','points','position',[x0,y0,width,height]);
+    hold off;
+    
+    
+    
+    figure;
+    subplot(3,1,1);
+    %%MSE
+    plot(x,EDFBmserrors,'LineWidth',3);
+    legend('EDvsFB',FontSize=20)
+    %%MSE
+    subplot(3,1,2);
+    plot(x,FBGTmserrors,'LineWidth',3);
+    legend('FBvsGT',FontSize=20)
+    %%MSE
+    subplot(3,1,3);
+    plot(x,EDGTmserrors,'LineWidth',3);
+    legend('EDvsGT',FontSize=20)
+end
 
 
 disp('end')
@@ -166,7 +205,7 @@ function [FBEDFGssimvals,FBEDFGssimvals_mean,FBEDFGssimvals_var,labelnames,label
 end   
 
 
-function ssim_mseFGED(path_gt,path_FBFG,path_EDFG)
+function ssim_mseFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
     
     names_str = dir(path_gt);
     names_str=names_str(3:end,:);
@@ -198,22 +237,16 @@ function ssim_mseFGED(path_gt,path_FBFG,path_EDFG)
 %             imshow(img_edfg);
         
             %% ssim fb-ed
-%             show_fbed(img_fbfg,img_edfg);
+            show_fbed(img_fbfg,img_edfg, name{1});
 
             [ssimval,ssimmap] = ssim(img_edfg,img_fbfg);
             EDFBssimvals(1,cnt)=ssimval;
             EDFBssimmaps{cnt}=ssimmap;
 
+            %show ssim map
 %             ha = tight_subplot(1,1,0.01,[0.01 0.01],[0.01 0.01]);
 %             axes(ha(1)); 
 %             imagesc(ssimmap); %caxis([0 1]);
-%             colormap(jet(64));
-%             colorbar;
-%             set(ha(1),'XTick',[]);
-%             set(ha(1),'YTick',[]);
-%             saving_path=fullfile('comparisonFBEDFG/',sprintf('%s.png',name{1})),'png';
-%             saveas(ha,saving_path);
-            
 %             imshow(ssimmap,[])
 %             title("Local SSIM Map with Global SSIM Value: "+num2str(ssimval))
     
@@ -222,18 +255,19 @@ function ssim_mseFGED(path_gt,path_FBFG,path_EDFG)
             EDFBmserrors(1,cnt)=err;
             cnt=cnt+1;
         end
-    save('EDFBssimvals.mat','EDFBssimvals');
-    save('EDFBssimmaps.mat','EDFBssimmaps');
-    save('EDFBmserrors.mat','EDFBmserrors');
-    save('EDFBnamesimages.mat','EDFBnamesimages');
-    save('EDFBlabelsimages.mat','EDFBlabelsimages');
-
+    if saveFLAG
+        save('EDFBssimvals.mat','EDFBssimvals');
+        save('EDFBssimmaps.mat','EDFBssimmaps');
+        save('EDFBmserrors.mat','EDFBmserrors');
+        save('EDFBnamesimages.mat','EDFBnamesimages');
+        save('EDFBlabelsimages.mat','EDFBlabelsimages');
+    end
 
 end
 
 
 
-function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG)
+function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
     
     names_str = dir(path_gt);
     names_str=names_str(3:end,:);
@@ -267,16 +301,18 @@ function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG)
             img_gt = imresize(img_gt,[rows cols]);
             img_fbfg = imresize(img_fbfg,[rows cols]);
             img_edfg = imresize(img_edfg,[rows cols]);
-       
-%             figure;
-%             subplot(1,3,1);
-%             imshow(img_gt);
-%             subplot(1,3,2)
-%             imshow(img_fbfg);
-%             subplot(1,3,3);
-%             imshow(img_edfg);
+
+%             figGT = figure();
+%             imagesc(img_gt);
+%             colormap(jet(64));
+%             colorbar;
+%             axis off;
+%             caxis([0,350]);
+%             labelGT=strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/GTfigureground/', name, '.png');
+%             saveas(figGT, labelGT);
         
             %% ssim fb-gt
+            show_gtfbed(img_gt,img_fbfg,img_edfg);
 %             show_fbed(img_fbfg,img_edfg);
 
             [FBGTssimval,FBGTssimmap] = ssim(img_fbfg,img_gt);
@@ -329,16 +365,19 @@ function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG)
 
             cnt=cnt+1;
         end
-    save('EDGTssimvals.mat','EDGTssimvals');
-    save('EDGTssimmaps.mat','EDGTssimmaps');
-    save('EDGTmserrors.mat','EDGTmserrors');
+    if saveFLAG
 
-    save('FBGTssimvals.mat','FBGTssimvals');
-    save('FBGTssimmaps.mat','FBGTssimmaps');
-    save('FBGTmserrors.mat','FBGTmserrors');
-
-    save('namefigures.mat','namefigures');
-    save('labelsfigures.mat','labelsfigures');
+        save('EDGTssimvals.mat','EDGTssimvals');
+        save('EDGTssimmaps.mat','EDGTssimmaps');
+        save('EDGTmserrors.mat','EDGTmserrors');
+    
+        save('FBGTssimvals.mat','FBGTssimvals');
+        save('FBGTssimmaps.mat','FBGTssimmaps');
+        save('FBGTmserrors.mat','FBGTmserrors');
+    
+        save('namefigures.mat','namefigures');
+        save('labelsfigures.mat','labelsfigures');
+    end
 
 end
 
@@ -346,23 +385,29 @@ end
 
 
 
-function show_fbed(img_fbfg,img_edfg)
+function show_fbed(img_fbfg,img_edfg, name)
 
-        subplot(1,2,1);
+%         subplot(1,2,1);
+        figFB = figure();
         imagesc(img_fbfg);
         colormap(jet(64));
         colorbar;
         axis off;
         caxis([0, 360]);
+        labelFB=strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/FBangleinfo/', name, '.png');
+        saveas(figFB, labelFB);
     %     title('FB figure-ground',FontSize=20);
     
-        subplot(1,2,2);
+%         subplot(1,2,2);
+        figED = figure();
         imagesc(img_edfg);
         colormap(jet(64));
         colorbar;
         axis off;
         caxis([0, 360]);
-    %     title('ED figure-ground',FontSize=20);
+        labelED=strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/EDangleinfo/', name, '.png');
+        saveas(figED, labelED);
+  %     title('ED figure-ground',FontSize=20);
 end
 
 
