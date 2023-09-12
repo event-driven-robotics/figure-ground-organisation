@@ -1,22 +1,26 @@
 %%comparison figure ground maps ED and FG agaist the ground truth.
 %%Computing the SSIM and MSE with the figure ground map.
+addpath('phasebar', 'phasemap', 'phasewrap');
 clc,clear all,close all;
 
 analysisFLAG=1;
 SSIM_MSE_FLAG=0;
-saveFLAG=0;
+saveFLAG=1;
 
 path_gt='/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/GTfigureground/'; %73
 path_FBFG='/home/giuliadangelo/figure-ground-organisation/FG_RNN/output/ori/';%306
 path_EDFG='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/results/ori/';%197
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%computation of ssim and mse: fg vs ed & gt vs fg vs ed 
 if analysisFLAG
-%     ssim_mseFGED(path_gt,path_FBFG,path_EDFG,saveFLAG)
+    ssim_mseFGED(path_gt,path_FBFG,path_EDFG,saveFLAG)
     ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG,saveFLAG)
 end
 
 if SSIM_MSE_FLAG
-    %% compute the SSIM and MSE between the FBFG and EDFG
+    %% load the SSIM and MSE between the FBFG and EDFG
     [FBEDFGssimvals,FBEDFGssimvals_mean,FBEDFGssimvals_var,labelnames,labelnamesval]=valsEDvsFB();
     [EDFBvalsort,FBEDindx] = sort(FBEDFGssimvals,'descend');
     EDFBlabelnames=labelnames(FBEDindx);
@@ -59,7 +63,7 @@ if SSIM_MSE_FLAG
     hold off;
 
     
-    %% compute the SSIM and MSE between the FBFG against the GT
+    %% load the SSIM and MSE between the FBFG against the GT
     [FBGTssimvals,FBGTssimvals_mean,FBGTssimvals_var]=valsFBvsGT();
     [FBGTvalsort,FBGTindx] = sort(FBGTssimvals,'descend');
     FBGTlabelnames=labelnames(FBGTindx);
@@ -100,7 +104,7 @@ if SSIM_MSE_FLAG
     
     
     
-    %% compute the SSIM and MSE between the EDFG against the GT
+    %% load the SSIM and MSE between the EDFG against the GT
     
     [EDGTssimvals,EDGTssimvals_mean,EDGTssimvals_var]=valsEDvsGT();
     [EDGTvalsort,EDGTindx] = sort(EDGTssimvals,'descend');
@@ -161,6 +165,9 @@ disp('end')
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 
 %% FUNCTIONS
@@ -230,14 +237,9 @@ function ssim_mseFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
             img_fbfg = imresize(img_fbfg,[rows cols]);
             img_edfg = imresize(img_edfg,[rows cols]);
        
-%             figure;
-%             subplot(1,2,1);
-%             imshow(img_fbfg);
-%             subplot(1,2,2);
-%             imshow(img_edfg);
         
             %% ssim fb-ed
-            show_fbed(img_fbfg,img_edfg, name{1});
+%             show_fbed(img_fbfg,img_edfg, name{1});
 
             [ssimval,ssimmap] = ssim(img_edfg,img_fbfg);
             EDFBssimvals(1,cnt)=ssimval;
@@ -255,41 +257,41 @@ function ssim_mseFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
             EDFBmserrors(1,cnt)=err;
             cnt=cnt+1;
         end
-    if saveFLAG
-        save('EDFBssimvals.mat','EDFBssimvals');
-        save('EDFBssimmaps.mat','EDFBssimmaps');
-        save('EDFBmserrors.mat','EDFBmserrors');
-        save('EDFBnamesimages.mat','EDFBnamesimages');
-        save('EDFBlabelsimages.mat','EDFBlabelsimages');
+        if saveFLAG
+            save('EDFBssimvals.mat','EDFBssimvals');
+            save('EDFBssimmaps.mat','EDFBssimmaps');
+            save('EDFBmserrors.mat','EDFBmserrors');
+            save('EDFBnamesimages.mat','EDFBnamesimages');
+            save('EDFBlabelsimages.mat','EDFBlabelsimages');
+        end
+    
     end
-
-end
-
-
-
-function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
     
-    names_str = dir(path_gt);
-    names_str=names_str(3:end,:);
-    len_names=length(names_str);
-    disp(len_names);
     
-    FBGTssimvals=zeros(1,len_names);
-    FBGTssimvals=zeros(1,len_names);
-    FBGTssimmaps=cell(len_names,1);
-    FBGTmserrors=zeros(1,len_names);
-
-    EDGTssimvals=zeros(1,len_names);
-    EDGTssimvals=zeros(1,len_names);
-    EDGTssimmaps=cell(len_names,1);
-    EDGTmserrors=zeros(1,len_names);
-
-    namefigures=string([len_names]);
-    labelsfigures=string([len_names]);
-
-    cnt=1;
     
-        for idx=1:len_names
+    function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
+        
+        names_str = dir(path_gt);
+        names_str=names_str(3:end,:);
+        len_names=length(names_str);
+        disp(len_names);
+        
+        FBGTssimvals=zeros(1,len_names);
+        FBGTssimvals=zeros(1,len_names);
+        FBGTssimmaps=cell(len_names,1);
+        FBGTmserrors=zeros(1,len_names);
+    
+        EDGTssimvals=zeros(1,len_names);
+        EDGTssimvals=zeros(1,len_names);
+        EDGTssimmaps=cell(len_names,1);
+        EDGTmserrors=zeros(1,len_names);
+    
+        namefigures=string([len_names]);
+        labelsfigures=string([len_names]);
+    
+       cnt=1;
+        
+       for idx=1:len_names
             disp(idx)
             name = extractBetween(names_str(idx).name , '-' , '-' );
             namefigures(cnt)=name;
@@ -297,6 +299,7 @@ function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
             img_gt=rgb2gray(imread(strcat(path_gt,names_str(idx).name)));
             img_fbfg=rgb2gray(imread(strcat(path_FBFG,name{1},'.jpg')));
             img_edfg=rgb2gray(imread(strcat(path_EDFG,'FG_',name{1},'.png')));
+
             [rows,cols]=size(img_fbfg);
             img_gt = imresize(img_gt,[rows cols]);
             img_fbfg = imresize(img_fbfg,[rows cols]);
@@ -312,8 +315,7 @@ function ssim_mseGTFGED(path_gt,path_FBFG,path_EDFG, saveFLAG)
 %             saveas(figGT, labelGT);
         
             %% ssim fb-gt
-            show_gtfbed(img_gt,img_fbfg,img_edfg);
-%             show_fbed(img_fbfg,img_edfg);
+%             show_gtfbed(img_gt,img_fbfg,img_edfg, name{1});
 
             [FBGTssimval,FBGTssimmap] = ssim(img_fbfg,img_gt);
             FBGTssimvals(1,cnt)=FBGTssimval;
@@ -412,32 +414,40 @@ end
 
 
 
-function show_gtfbed(img_gt,img_fbfg,img_edfg)
+function show_gtfbed(img_gt,img_fbfg,img_edfg, name)
 
-    figure;
-    subplot(1,3,1);
-    imagesc(img_gt);
-    colormap(jet(64));
-    colorbar;
-    axis off;
-    caxis([0, 360]);
-%     title('Ground Truth',FontSize=20);
-
-    subplot(1,3,2);
-    imagesc(img_fbfg);
-    colormap(jet(64));
-    colorbar;
-    axis off;
-    caxis([0, 360]);
-%     title('FB figure-ground',FontSize=20);
-
-    subplot(1,3,3);
-    imagesc(img_edfg);
-    colormap(jet(64));
-    colorbar;
-    axis off;
-    caxis([0, 360]);
-%     title('ED figure-ground',FontSize=20);
+            fgt=figure('visible','off');
+%             subplot(1,3,1);
+            img_gt(img_gt>180)=img_gt(img_gt>180)-180;
+            imagesc(img_gt);
+            colormap('hsv');
+%             phasebar('location','se');
+            caxis([0,180]);
+            axis off;
+            labelGT=strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/nolegend/GTangleinfo/', name, '.png');
+            saveas(fgt, labelGT);
+        
+            ffb=figure('visible','off');
+%             subplot(1,3,2);
+            img_fbfg(img_fbfg>180)=img_fbfg(img_fbfg>180)-180;
+            imagesc(img_fbfg);
+            colormap('hsv');
+%             phasebar('location','se');
+            caxis([0,180]);
+            axis off;
+            labelFB=strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/nolegend/FBangleinfo/', name, '.png');
+            saveas(ffb, labelFB);
+        
+            fed= figure('visible','off');
+%             subplot(1,3,3);
+            img_edfg(img_edfg>180)=img_edfg(img_edfg>180)-180;
+            imagesc(img_edfg);
+            colormap('hsv');
+%             phasebar('location','se');
+            caxis([0,180]);
+            axis off;
+            labelED=strcat('/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/nolegend/EDangleinfo/', name, '.png');
+            saveas(fed, labelED);
 
 end
 
