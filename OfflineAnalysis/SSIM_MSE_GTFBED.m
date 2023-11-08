@@ -2,7 +2,6 @@
 %%Computing the SSIM and MSE with the figure ground map.
 addpath('phasebar', 'phasemap', 'phasewrap');
 clc,clear all,close all;
-
 %% generate images to be compared FB-GT-ED
 % imgs_generation();
 
@@ -10,71 +9,108 @@ clc,clear all,close all;
 % ssim_mse();
 
 %% PLOT analysis on the FB-GT-ED computing SSIM & MSE
+comp();
 
-
-%load name figures
-namefigures=load("namefigures.mat");
-namefigures=namefigures.namefigures;
-labelsfigures=load('labelsfigures.mat');
-labelsfigures=labelsfigures.labelsfigures;
-
-%load FB-ED data
-FBEDFGssimvals= load('EDFBssimvals.mat');
-FBEDFGssimvals=FBEDFGssimvals.EDFBssimvals;
-FBEDFGssimvals_mean=mean(FBEDFGssimvals);
-FBEDFGssimvals_var=var(FBEDFGssimvals);
-FBEDFGssimvals_mean= ones(1,length(FBEDFGssimvals))*FBEDFGssimvals_mean;
-[EDFBvalsort,FBEDindx] = sort(FBEDFGssimvals,'descend');
-EDFBlabelnames=namefigures(FBEDindx);
-
-EDFBmserrors=load('EDFBmserrors.mat');
-EDFBmserrors=EDFBmserrors.EDFBmserrors;
-EDFBmserrors=EDFBmserrors(FBEDindx);
-
-figure;
-subplot(3,1,1);
-plot_comp(EDFBlabelnames,EDFBvalsort, FBEDFGssimvals_mean,FBEDFGssimvals_var,'EDvsFB');
-
-%load FB-GT data
-FBGTssimvals= load('FBGTssimvals.mat');
-FBGTssimvals=FBGTssimvals.FBGTssimvals;
-FBGTssimvals_mean=mean(FBGTssimvals);
-FBGTssimvals_var=var(FBGTssimvals);
-FBGTssimvals_mean= ones(1,length(FBGTssimvals))*FBGTssimvals_mean;
-[FBGTvalsort,FBGTindx] = sort(FBGTssimvals,'descend');
-FBGTlabelnames=namefigures(FBGTindx);
-
-FBGTmserrors=load('FBGTmserrors.mat');
-FBGTmserrors=FBGTmserrors.FBGTmserrors;
-FBGTmserrors=FBGTmserrors(FBGTindx);
-    
-subplot(3,1,2);
-plot_comp(FBGTlabelnames,FBGTvalsort, FBGTssimvals_mean,FBGTssimvals_var,'FBvsGT');
-
-%load ED-GT data
-EDGTssimvals= load('EDGTssimvals.mat');
-EDGTssimvals=EDGTssimvals.EDGTssimvals;
-EDGTssimvals_mean=mean(EDGTssimvals);
-EDGTssimvals_var=var(EDGTssimvals);
-EDGTssimvals_mean= ones(1,length(EDGTssimvals))*EDGTssimvals_mean;
-[EDGTvalsort,EDGTindx] = sort(EDGTssimvals,'descend');
-EDGTlabelnames=namefigures(EDGTindx);
-
-EDGTmserrors=load('EDGTmserrors.mat');
-EDGTmserrors=EDGTmserrors.EDGTmserrors;
-EDGTmserrors=EDGTmserrors(EDGTindx);
-
-
-subplot(3,1,3);
-plot_comp(EDGTlabelnames,EDGTvalsort, EDGTssimvals_mean,EDGTssimvals_var,'EDvsGT');
-
-disp('end');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    FUNCTION   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function plot_comp(labelnames,valsort,ssimvals_mean,ssimvals_var, comp)
+
+function comp()
+    %load name figures
+    namefigures=load("namefigures.mat");
+    namefigures=namefigures.namefigures;
+    labelsfigures=load('labelsfigures.mat');
+    labelsfigures=labelsfigures.labelsfigures;
+    
+    %load FB-ED data
+    FBEDFGssimvals= load('EDFBssimvals.mat');
+    FBEDFGssimvals=FBEDFGssimvals.EDFBssimvals;
+    FBEDFGssimvals_mean=mean(FBEDFGssimvals);
+    FBEDFGssimvals_var=var(FBEDFGssimvals);
+    FBEDFGssimvals_mean= ones(1,length(FBEDFGssimvals))*FBEDFGssimvals_mean;
+    
+    EDFBmserrors=load('EDFBmserrors.mat');
+    EDFBmserrors=EDFBmserrors.EDFBmserrors;
+    figure;
+    subplot(3,1,1);
+
+    %sorted values 
+%     [FBEDFGvalsort,FBEDindx] = sort(FBEDFGssimvals,'descend');
+%     FBEDFGlabelnames=namefigures(FBEDindx);
+%     plot_comp(namefigures,FBEDFGvalsort, FBEDFGssimvals_mean,FBEDFGssimvals_var,'EDvsFB');
+%     EDFBmserrors=EDFBmserrors(FBEDindx);
+
+    %non sorted values
+    plot_compSSIM(namefigures,FBEDFGssimvals, FBEDFGssimvals_mean,FBEDFGssimvals_var,'EDvsFB');
+
+    
+    %load FB-GT data
+    FBGTssimvals= load('FBGTssimvals.mat');
+    FBGTssimvals=FBGTssimvals.FBGTssimvals;
+    FBGTssimvals_mean=mean(FBGTssimvals);
+    FBGTssimvals_var=var(FBGTssimvals);
+    FBGTssimvals_mean= ones(1,length(FBGTssimvals))*FBGTssimvals_mean;
+
+    
+    FBGTmserrors=load('FBGTmserrors.mat');
+    FBGTmserrors=FBGTmserrors.FBGTmserrors;
+
+        
+    subplot(3,1,2);
+    %sorted values
+%     [FBGTvalsort,FBGTindx] = sort(FBGTssimvals,'descend');
+%     FBGTlabelnames=namefigures(FBGTindx);
+%     plot_comp(FBGTlabelnames,FBGTvalsort, FBGTssimvals_mean,FBGTssimvals_var,'FBvsGT');
+%     FBGTmserrors=FBGTmserrors(FBGTindx);
+
+    %non sorted
+    plot_compSSIM(namefigures,FBGTssimvals, FBGTssimvals_mean,FBGTssimvals_var,'FBvsGT');
+
+    
+    %load ED-GT data
+    EDGTssimvals= load('EDGTssimvals.mat');
+    EDGTssimvals=EDGTssimvals.EDGTssimvals;
+    EDGTssimvals_mean=mean(EDGTssimvals);
+    EDGTssimvals_var=var(EDGTssimvals);
+    EDGTssimvals_mean= ones(1,length(EDGTssimvals))*EDGTssimvals_mean;
+
+    EDGTmserrors=load('EDGTmserrors.mat');
+    EDGTmserrors=EDGTmserrors.EDGTmserrors;
+    
+    subplot(3,1,3);
+    %sorted
+%     [EDGTvalsort,EDGTindx] = sort(EDGTssimvals,'descend');
+%     EDGTlabelnames=namefigures(EDGTindx);
+%     EDGTmserrors=EDGTmserrors(EDGTindx);
+%     plot_comp(EDGTlabelnames,EDGTvalsort, EDGTssimvals_mean,EDGTssimvals_var,'EDvsGT');
+
+    %non sorted
+    plot_compSSIM(namefigures,EDGTssimvals, EDGTssimvals_mean,EDGTssimvals_var,'EDvsGT');
+
+    figure();
+    ax=gca;
+    plot_compMSE(namefigures,EDFBmserrors);
+    hold on;
+    plot_compMSE(namefigures,FBGTmserrors);
+    hold on;
+    plot_compMSE(namefigures,EDGTmserrors);
+    legend('EDvsFB', 'FBvsGT', 'EDvsGT', FontSize=20);
+    ax.XAxis.FontSize = 25;
+    ax.YAxis.FontSize = 25;
+
+
+end
+
+function plot_compMSE(labelnames,mseerrors)
+    %%bar
+    x=categorical(labelnames);
+    x = reordercats(x,string(x));
+    plot(x,mseerrors,'LineWidth',3);
+end
+
+function plot_compSSIM(labelnames,valsort,ssimvals_mean,ssimvals_var, comp)
     %%bar
     x=categorical(labelnames);
     x = reordercats(x,string(x));
@@ -94,10 +130,10 @@ function plot_comp(labelnames,valsort,ssimvals_mean,ssimvals_var, comp)
     %%mean
     plot(x,ssimvals_mean,'LineWidth',3);
     
-    legend(comp,'mean',FontSize=20);
-    xtickangle(45)
-    ax.XAxis.FontSize = 15;
-    ax.YAxis.FontSize = 26;
+    legend(comp,'mean','MSE',FontSize=20);
+    xtickangle(45);
+    ax.XAxis.FontSize = 25;
+    ax.YAxis.FontSize = 25;
     x0=10;
     y0=10;
     width=10000;

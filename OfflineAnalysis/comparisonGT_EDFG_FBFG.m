@@ -3,8 +3,8 @@
 addpath('phasebar', 'phasemap', 'phasewrap');
 clc,clear all,close all;
 
-analysisFLAG=1;
-SSIM_MSE_FLAG=0;
+analysisFLAG=0;
+SSIM_MSE_FLAG=1;
 saveFLAG=1;
 
 path_gt='/home/giuliadangelo/figure-ground-organisation/OfflineAnalysis/fgsegresults/GTfigureground/'; %73
