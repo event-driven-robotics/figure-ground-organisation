@@ -7,19 +7,20 @@ from bimvee.importRpgDvsRos import importRpgDvsRos
 from bimvee.importIitYarp import importIitYarp
 from bimvee.importProph import importProph
 import oriens_utils as oriens
+import pickle
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
 import imageio as iio
 
-MAXLEVEL = 10  #pyramid level
+MAXLEVEL = 10  #pyramid level  (originally 10)
 NUMORI = 8 #orientation numbers
 R0 = 8 #VM size, radius
 WIDTHVM = 13 #VM witdh
 HEIGHTVM = 13 #VM height (originally 13)
 W = 1 #weight of inhibition BO
-ITERATIONS = 10 #iterations number
+ITERATIONS = 10 #iterations number (originally 10)
 ALPHA = 2 #BO feedback formulation, paramater
 
 def makePyramid(img):
@@ -400,8 +401,9 @@ if __name__ == '__main__':
     image_name = path[2]
     # SUFFIX = "_"+image_name'''
 
+    RealWorldData = True
     DataLogFLAG = False
-    RosBagFLAG = True
+    RosBagFLAG = False
     RawDataFLAG = False
     SaveFilesFLAG = True
 
@@ -416,20 +418,23 @@ if __name__ == '__main__':
     # name_list=['heart', 'footprint','cat']
     # name_list=['cilinder_cup_bottle']# 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles']
 
-    filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/FBEDFGBerkley/shaked_imgs/'
-    name_list=os.listdir(filePathOrName)
+    # filePathOrName = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/FBEDFGBerkley/shaked_imgs/'
+    # name_list=os.listdir(filePathOrName)
 
     # name_list = ['12003', '12074', '22090', '24063', '28075', '35008', '35058', '35070', '41004', '105053', '112082', '113016', '156079','159091','368016', '43070', '113016', '156079']
 
+    name_list = ['realworld']
 
     for name in name_list:
         # Read events
 
-        # saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name+'/'
+        # save_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name+'/'
         # os.mkdir('/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/paper/resultspattericubreal/results_r08/'+name)
 
-        saving_path = '/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/'+name+'/'
-        os.mkdir(saving_path)
+        # save_path = '/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/'+name+'/'
+        # os.mkdir(save_path)
+
+        save_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/real-world-data/results/'
 
 
         if DataLogFLAG:
@@ -458,6 +463,7 @@ if __name__ == '__main__':
 
             # Create events frame
             tw_seconds = 0.18 #how many seconds you want to accumulate events (0.15) new research (0.1)
+            period = tw_seconds
             time2accumulate = 4.42 #where to start the accumulation (decided with mustard) (1.50)new research(3.90)
             time_istant = np.where(ts >= time2accumulate)[0][0]
             start_time = ts[time_istant]
@@ -466,7 +472,6 @@ if __name__ == '__main__':
             frame_list = []
             frame = np.full((241, 305), 0.5)
             # frame = np.full((341, 481), 0.5)
-
 
 
         # Load the events fram from the bag
@@ -518,7 +523,8 @@ if __name__ == '__main__':
 
             # Create events frame
             tw_seconds = 0.15  # how many seconds you want to accumulate events
-            time2accumulate = 1.50  # where to start the accumulation (decided with mustard)
+            period = tw_seconds
+            time2accumulate = 0  # where to start the accumulation (decided with mustard)
             time_istant = np.where(ts >= time2accumulate)[0][0]
             start_time = ts[time_istant]
             start_time_tw = ts[time_istant]
@@ -527,20 +533,46 @@ if __name__ == '__main__':
 
             frame = np.full((480, 640), 0.5)
 
+        if RealWorldData:
+            filePathOrName = '/home/giuliadangelo/figure-ground-organisation/real-world-data/realworld/data/'
+            codecbit = '24bit'
+            camera_events = 'left'
+            # events = importIitYarp(filePathOrName=filePathOrName, codec=codecbit)
+
+            with open('realworlddata.pkl', 'rb') as f:
+                events = pickle.load(f)
+
+            xs = events['data'][camera_events]['dvs']['x']
+            ys = events['data'][camera_events]['dvs']['y']
+            ts = events['data'][camera_events]['dvs']['ts']
+            pol = events['data'][camera_events]['dvs']['pol']
+
+            # Create events frame
+            tw_seconds = 0.10 #how many seconds you want to accumulate events (0.15) new research (0.1)
+            period = tw_seconds
+            max_time = max(ts) #### HERE
+            print(max_time)
+            curr_ts = 0
+            frame_list = []
+            # frame = np.full((241, 305), 0.5)
+            frame = np.full((480, 640), 0.5)
+
         #events frame accumulating event for a specific period, only for data.log or ros.bag if you don't want a frame with all the events of the dataset
         while True:
+            current_time = ts[curr_ts]
+            frame[ys[curr_ts], xs[curr_ts]] = pol[curr_ts]
 
-            current_time = ts[i]
-
-            elapsed_time_tw = current_time - start_time_tw
-
-            frame[ys[i], xs[i]] = pol[i]
-
-            if elapsed_time_tw >= tw_seconds:
+            if current_time >= tw_seconds:
                 frame_list.append(frame.copy())
+                plt.imshow(frame)
+                plt.draw()
+                plt.pause(0.2)
+                print(current_time)
+                frame = np.full((480, 640), 0.5)
+                tw_seconds = tw_seconds + period
+            if current_time >= max_time:
                 break
-
-            i +=1
+            curr_ts +=1
 
         orienslist = list(np.arange(0, 337.5 + 1, 22.5))
 
@@ -550,12 +582,15 @@ if __name__ == '__main__':
         sigma2 = np.array([[0.8, 0], [0, 0.3]])
         G = oriens.mvDog(mu, mu, sigma1, sigma2)
 
+        i=0
         image_sum = 0
         response_list = []
         all_respone = []
 
-        for i in range(len(frame_list)):
-
+        for i in range(0, len(frame_list)):
+            print(str(len(frame_list)))
+            saving_path = save_path+str(i)+'/'
+            os.mkdir(saving_path)
             image = frame_list[i]
 
             # Split events frame into pos e neg
@@ -565,15 +600,13 @@ if __name__ == '__main__':
 
             if filpFLAG:
                 image = cv2.flip(image, -1)
-            # imgplot = plt.imshow(flippedimage)
-            # plt.show()
             img_pos[image > 0.7] = 1
             img_neg[image < 0.3] = 1
 
+            #g ahead and make results
             if SaveFilesFLAG:
-                if i==0:
-                    np.savetxt(saving_path+'img_pos' + SUFFIX + '.csv', img_pos)
-                    np.savetxt(saving_path+'img_neg' + SUFFIX + '.csv', img_neg)
+                np.savetxt(saving_path+'img_pos' + SUFFIX + '.csv', img_pos)
+                np.savetxt(saving_path+'img_neg' + SUFFIX + '.csv', img_neg)
 
             image[image == 0] = 1
             image[image == 0.5] = 0
@@ -589,7 +622,7 @@ if __name__ == '__main__':
                 response_pos = oriens.getOriensResp(edgeMapPyr_pos[j], G, orienslist[:NUMORI], 0.3)  # 0.15
                 response_neg = oriens.getOriensResp(edgeMapPyr_neg[j], G, orienslist[NUMORI:], 0.3)  # 0.15
 
-                if (SaveFilesFLAG and (j==0) and (i==0)):
+                if (SaveFilesFLAG and (j==0)):# and (i==0)):
                     for t in range(np.shape(response_pos)[2]):
                         np.savetxt(saving_path+'resp'+str(orienslist[t]) + SUFFIX + '.csv', response_pos[:,:,t])
 
@@ -603,89 +636,90 @@ if __name__ == '__main__':
             all_respone.append(response_list)
             response_list = []
 
-        response_pyr = []
-        response = []
-        # Sum the edge map at the same orientation together
-        for i in range(MAXLEVEL):
-            for k in range(len(orienslist)):
-                sum_ori = 0
-                for j in range(len(all_respone)):
-
-                    sum_ori += all_respone[j][i][:,:,k]
-                    sum_ori[sum_ori<0.2] = 0
-
-                response.append(sum_ori)
-
-            response_pyr.append(response)
+            #it was a teab back
+            response_pyr = []
             response = []
+            # Sum the edge map at the same orientation together
+            for i in range(MAXLEVEL):
+                for k in range(len(orienslist)):
+                    sum_ori = 0
+                    for j in range(len(all_respone)):
 
-        # Compute orientations matrix
-        oriensMatrixPyr = []
-        for i in range(MAXLEVEL):
-            # Compute the orientation matrix with the edge maps at different orientations
-            corfresponse, oriensMatrix = oriens.calc_viewimage(response_pyr[i],list(range(1,len(orienslist)+1)), np.multiply(orienslist,math.pi/180))
+                        sum_ori += all_respone[j][i][:,:,k]
+                        sum_ori[sum_ori<0.2] = 0
 
-            oriensMatrixPyr.append(oriensMatrix)
+                    response.append(sum_ori)
 
-        if SaveFilesFLAG:
-            np.savetxt(saving_path+'oriens'+SUFFIX+'.csv',oriensMatrixPyr[0])
-            np.savetxt(saving_path+'frame'+SUFFIX+'.csv', image_sum)
+                response_pyr.append(response)
+                response = []
 
-        edgeMapPyr = makePyramid(image_sum)
+            # Compute orientations matrix
+            oriensMatrixPyr = []
+            for i in range(MAXLEVEL):
+                # Compute the orientation matrix with the edge maps at different orientations
+                corfresponse, oriensMatrix = oriens.calc_viewimage(response_pyr[i],list(range(1,len(orienslist)+1)), np.multiply(orienslist,math.pi/180))
 
-        # Create VonMises
-        dim1 = np.arange(-3*R0,3*R0+1)
-        dim2 = np.flip(dim1,0)
+                oriensMatrixPyr.append(oriensMatrix)
 
-        invmsk1 = []
-        invmsk2 = []
+            if SaveFilesFLAG:
+                np.savetxt(saving_path+'oriens'+SUFFIX+'.csv',oriensMatrixPyr[0])
+                np.savetxt(saving_path+'frame'+SUFFIX+'.csv', image_sum)
 
-        for ori in range(NUMORI):
+            edgeMapPyr = makePyramid(image_sum)
 
-            temp1,temp2 = makeVonMises(R0,oris[ori]+math.pi/2,dim1,dim2)
+            # Create VonMises
+            dim1 = np.arange(-3*R0,3*R0+1)
+            dim2 = np.flip(dim1,0)
 
-            invmsk1.append(temp1)
-            invmsk2.append(temp2)
+            invmsk1 = []
+            invmsk2 = []
 
-        # Generate border ownership(feedforward step)
-        bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,s_pyr = makeBorderOwnership(edgeMapPyr,oriensMatrixPyr,np.multiply(orienslist,math.pi/180))
+            for ori in range(NUMORI):
 
-        # Iterative algorithm
-        for i in range(ITERATIONS):
+                temp1,temp2 = makeVonMises(R0,oris[ori]+math.pi/2,dim1,dim2)
 
-            print('Iteration ' +str(i+1)+ '\n')
+                invmsk1.append(temp1)
+                invmsk2.append(temp2)
 
-            gl_pyr,gd_pyr,bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr = makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr)
+            # Generate border ownership(feedforward step)
+            bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,s_pyr = makeBorderOwnership(edgeMapPyr,oriensMatrixPyr,np.multiply(orienslist,math.pi/180))
 
-        # Combine border-ownership maps
-        bTotal1 = sumPyr(bl_1_pyr,bd_1_pyr,'orientation')
-        bTotal2 = sumPyr(bl_2_pyr,bd_2_pyr,'orientation')
+            # Iterative algorithm
+            for i in range(ITERATIONS):
 
-        # Visualize border ownership at the highest resolution
-        X = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
-        Y = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
+                print('Iteration ' +str(i+1)+ '\n')
 
-        for ori in range(NUMORI):
+                gl_pyr,gd_pyr,bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr = makeGrouping(bl_1_pyr,bl_2_pyr,bd_1_pyr,bd_2_pyr,invmsk1,invmsk2,s_pyr)
 
-            # BOS points towards outside of circle
-            X += (math.cos(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
-            Y += (math.sin(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
+            # Combine border-ownership maps
+            bTotal1 = sumPyr(bl_1_pyr,bd_1_pyr,'orientation')
+            bTotal2 = sumPyr(bl_2_pyr,bd_2_pyr,'orientation')
 
-        # Combine grouping maps
-        gTotal = sumPyr(gl_pyr, gd_pyr, 'data')
+            # Visualize border ownership at the highest resolution
+            X = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
+            Y = np.zeros((np.shape(bTotal1[0])[0],np.shape(bTotal1[0])[1]))
 
-        # Combine the maps
-        groupData = np.zeros((np.shape(image)[0],np.shape(image)[1]))
-        for level in range(MAXLEVEL):
-            groupData += cv2.resize(gTotal[level], (np.shape(image)[1],np.shape(image)[0]))
+            for ori in range(NUMORI):
 
-        if SaveFilesFLAG:
-            np.savetxt(saving_path+'X'+SUFFIX+'.csv',X)
-            np.savetxt(saving_path+'Y'+SUFFIX+'.csv',Y)
-            np.savetxt(saving_path+'grouping' + SUFFIX + '.csv', groupData)
+                # BOS points towards outside of circle
+                X += (math.cos(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
+                Y += (math.sin(oris[ori]-(math.pi/2))*(bTotal2[0][:,:,ori]-bTotal1[0][:,:,ori]))
+
+            # Combine grouping maps
+            gTotal = sumPyr(gl_pyr, gd_pyr, 'data')
+
+            # Combine the maps
+            groupData = np.zeros((np.shape(image)[0],np.shape(image)[1]))
+            for level in range(MAXLEVEL):
+                groupData += cv2.resize(gTotal[level], (np.shape(image)[1],np.shape(image)[0]))
+
+            if SaveFilesFLAG:
+                np.savetxt(saving_path+'X'+SUFFIX+'.csv',X)
+                np.savetxt(saving_path+'Y'+SUFFIX+'.csv',Y)
+                np.savetxt(saving_path+'grouping' + SUFFIX + '.csv', groupData)
 
 
-            #how to draw a window
-            # cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
-            # cv2.imshow("Image", occ_map)
-            # cv2.waitKey(0)
+                #how to draw a window
+                # cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+                # cv2.imshow("Image", occ_map)
+                # cv2.waitKey(0)

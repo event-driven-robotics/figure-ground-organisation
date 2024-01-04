@@ -19,8 +19,10 @@ orienslist = 0:22.5:337.5;
 % }
 
 
-saving_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/results/';
+% saving_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/results/';
+% saving_path='/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/real-world-data/results/';
 % saving_path='/home/giuliadangelo/figure-ground-organisation/EDFG_RNN_results/results_r08/';
+saving_path = '/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/real-world-data/mapsresults/'
 
 saveFLAG=1;
 patternFLAG = 3;
@@ -34,16 +36,23 @@ elseif patternFLAG ==1
      name_str={'cilinder_cup_bottle'};%'calib_circles', 'tv', 'square_sasso', 'cilinder_cup_bottle', 'key_mouse_flip','calib_circles'};   
      w=304; %321
      h=240;  %481
-else
+elseif patternFLAG ==2
     data_path='/home/giuliadangelo/figure-ground-organisation/Berkleyresults/data/';
     name_str={'35058'}%,'12074','22090','28075','35008','35070','105053','159091'};
      w=481;
      h=321;
+else
+    data_path='/home/giuliadangelo/workspace/data/DATASETs/figure-ground-segmentation/real-world-data/results/';
+    dir_list = dir(data_path);
+    name_strlist={dir_list(3:end).name};
+    w=640;
+    h=480;
 end
 
 %%%%%%% experiments on patterns or icub-real %%%%%%%%%
 
-for  name_str = name_str
+for  name_str = name_strlist
+
     name=name_str{1};
     PATH = strcat(data_path, name);
     
@@ -66,8 +75,6 @@ for  name_str = name_str
         cols=[1,w];
     end
 
-
-
     % ORI
     % ha = tight_subplot(1,1,0.01,[0.01 0.01],[0.01 0.01]);
     % oriens=oriens(1:240,1:304);
@@ -76,7 +83,7 @@ for  name_str = name_str
     % set(ha(1),'YTick',[]);
     
     % EVENTS FRAME
-    figure
+    figure('visible','off');
     ha1 = tight_subplot(1,1,0.01,[0.01 0.01],[0.01 0.01]);
     image=image(rows(1):rows(2),cols(1):cols(2));
     if flipFLAG
@@ -88,13 +95,13 @@ for  name_str = name_str
     axes(ha1(1)); imshow(image);
     set(ha1(1),'XTick',[]);
     set(ha1(1),'YTick',[]);
-    if saveFLAG ==0
+    if saveFLAG ==1
         saving_path_events=fullfile(saving_path,'events',sprintf('%s.jpg',strcat('Frame_',name))),'jpg';
         saveas(ha1,saving_path_events);
     end
     
     % GROUPING
-    figure
+    figure('visible','off');
     ha2 = tight_subplot(1,1,0.01,[0.01 0.01],[0.01 0.01]);
     grouping=grouping(rows(1):rows(2),cols(1):cols(2));
     if flipFLAG
@@ -109,14 +116,14 @@ for  name_str = name_str
     colorbar;
     set(ha2(1),'XTick',[]);
     set(ha2(1),'YTick',[]);
-    if saveFLAG ==0
+    if saveFLAG ==1
         saving_path_grouping=fullfile(saving_path,'grouping',sprintf('%s.png',strcat('Grouping_',name))),'png';
         saveas(ha2,saving_path_grouping);
     end
     
     
-    % FIGURE-GROUND
-    figure
+    % FIGURE-GROUN
+    % figure('visible','off');
     ha3 = tight_subplot(1,1,0.01,[0.01 0.01],[0.01 0.01]);
     X = load(strcat(PATH,'/X',SUFFIX,'.csv'));
     Y = load(strcat(PATH,'/Y',SUFFIX,'.csv'));
@@ -140,6 +147,7 @@ for  name_str = name_str
         saving_path_figure=fullfile(saving_path,'ori',sprintf('%s.png',strcat('FG_',name))),'png';
         saveas(ha3,saving_path_figure);
     end
+    close all;
 
 end
 
