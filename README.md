@@ -22,7 +22,7 @@ Proceedings Eighth IEEE International Conference on Computer Vision. ICCV 2001, 
 
 ![Figure ground organisation](https://github.com/event-driven-robotics/figure-ground-organisation/blob/main/EDFG.png)
 
-This work is based on previous publications for a bioinspired visual attention mechanism for the humanoid robot iCub. 
+This work is based on previous publications for bioinspired visual attention mechanisms for the humanoid robot iCub. 
 
 - [Proto-object based saliency for event-driven cameras](https://ieeexplore.ieee.org/abstract/document/8967943)
 - [Event driven bio-inspired attentive system for the iCub humanoid robot on SpiNNaker](https://iopscience.iop.org/article/10.1088/2634-4386/ac6b50/meta)
